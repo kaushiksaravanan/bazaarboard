@@ -29,7 +29,7 @@ import {
 } from "@/lib/fidelity";
 
 const DEFAULT_MODEL =
-  process.env.NB2_MODEL ?? "gemini-2.5-flash-image-preview";
+  process.env.NB2_MODEL ?? "gemini-3.1-flash-lite-image";
 const UPSTREAM_TIMEOUT_MS = 30_000;
 
 interface GenerateBody {

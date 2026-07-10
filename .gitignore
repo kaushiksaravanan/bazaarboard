@@ -16,3 +16,6 @@ out/
 # Build products
 dist/
 *.tsbuildinfo
+
+.vercel
+.env*

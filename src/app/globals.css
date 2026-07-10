@@ -2,10 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts — Fraunces + Plus Jakarta Sans + every major Indic script
-   Noto Sans variant. Loaded here so the poster grid can render live
-   without waiting on a JS font loader. */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans+Devanagari:wght@400..900&family=Noto+Sans+Tamil:wght@400..900&family=Noto+Sans+Bengali:wght@400..900&family=Noto+Sans+Telugu:wght@400..900&family=Noto+Sans+Kannada:wght@400..900&family=Noto+Sans+Malayalam:wght@400..900&family=Noto+Sans+Gurmukhi:wght@400..900&family=Noto+Sans+Gujarati:wght@400..900&display=swap");
+/* Fonts are loaded via <link> in layout.tsx (Next 16 disallows CSS
+   @import in global stylesheets by default). */
 
 html,
 body {
