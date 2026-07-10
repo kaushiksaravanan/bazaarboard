@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts — Fraunces + Plus Jakarta Sans + every major Indic script
+   Noto Sans variant. Loaded here so the poster grid can render live
+   without waiting on a JS font loader. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans+Devanagari:wght@400..900&family=Noto+Sans+Tamil:wght@400..900&family=Noto+Sans+Bengali:wght@400..900&family=Noto+Sans+Telugu:wght@400..900&family=Noto+Sans+Kannada:wght@400..900&family=Noto+Sans+Malayalam:wght@400..900&family=Noto+Sans+Gurmukhi:wght@400..900&family=Noto+Sans+Gujarati:wght@400..900&display=swap");
+
+html,
+body {
+  background: theme("colors.bazaar.canvas");
+  color: theme("colors.bazaar.ink");
+  min-height: 100%;
+  font-family: theme("fontFamily.sans");
+}
+
+/* Poster preview surfaces — printable A4/1080x1920/1080x1080 shells that
+   auto-scale to fit their container. The generated image lives inside;
+   the rendered typography and layout is HTML+CSS around it. */
+.poster {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(31, 20, 9, 0.08);
+  border-radius: 12px;
+}
+
+.poster > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

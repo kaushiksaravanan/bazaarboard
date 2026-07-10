@@ -1,0 +1,17 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+*.swp
+
+# Build products
+dist/
