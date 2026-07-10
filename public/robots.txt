@@ -1,0 +1,8 @@
+# BazaarBoard robots.txt
+# All content is public. Crawlers welcome.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://bazaarboard.vercel.app/sitemap.xml

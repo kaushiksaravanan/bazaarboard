@@ -39,7 +39,11 @@ export function SurfacePicker({
   onToggle,
 }: Props): React.ReactElement {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div
+      role="group"
+      aria-label="Poster surfaces"
+      className="flex flex-wrap gap-2"
+    >
       {SURFACES.map((s) => {
         const active = multi
           ? Boolean(selectedSet?.has(s.kind))
@@ -47,14 +51,16 @@ export function SurfacePicker({
         return (
           <button
             key={s.kind}
+            type="button"
             onClick={() =>
               multi && onToggle ? onToggle(s.kind) : onChange(s.kind)
             }
             aria-pressed={active}
-            className={`text-xs px-3 py-2 rounded-full border transition-colors ${
+            aria-label={`${s.label}${active ? ", selected" : ""}`}
+            className={`text-xs px-3 py-2 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2 ${
               active
                 ? "bg-bazaar-tangerine text-white border-bazaar-tangerine"
-                : "bg-white border-bazaar-ink/20 hover:border-bazaar-tangerine/60"
+                : "bg-white border-bazaar-ink/30 hover:border-bazaar-tangerine/60"
             }`}
           >
             {s.label}

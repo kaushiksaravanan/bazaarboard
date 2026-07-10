@@ -30,3 +30,150 @@ body {
   object-fit: cover;
   display: block;
 }
+
+/* Responsive poster grid — one column on mobile, --poster-cols columns
+   at the `sm` breakpoint and up. Uses a CSS custom property because
+   Tailwind cannot detect dynamic class names. */
+.poster-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .poster-grid {
+    grid-template-columns: repeat(
+      var(--poster-cols-sm, 2),
+      minmax(0, 1fr)
+    );
+  }
+}
+@media (min-width: 1024px) {
+  .poster-grid {
+    grid-template-columns: repeat(var(--poster-cols, 2), minmax(0, 1fr));
+  }
+}
+
+/* Loading skeleton — shimmering gradient that respects the tile's aspect
+   ratio. Uses Tailwind's `animate-pulse` on top of a diagonal gradient so
+   there's a subtle sheen even before the image arrives. */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    rgba(31, 20, 9, 0.05) 30%,
+    rgba(242, 107, 31, 0.12) 50%,
+    rgba(31, 20, 9, 0.05) 70%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus visibility — restored globally so `outline-none` on inputs and
+   tabs doesn't remove keyboard-visible focus. Uses the tangerine ring
+   with an offset for high contrast against both canvas and white. */
+:focus-visible {
+  outline: 2px solid theme("colors.bazaar.tangerine");
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Momentary flash used by the throughput bar when a bulk run finishes. */
+.throughput-flash {
+  animation: throughput-flash 1.2s ease-out;
+}
+@keyframes throughput-flash {
+  0% {
+    background: rgba(46, 123, 78, 0.35);
+    box-shadow: 0 0 0 8px rgba(46, 123, 78, 0.15);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 0 rgba(46, 123, 78, 0);
+  }
+}
+
+/* Preset chip — subtle hover translate + active state. Kept as a
+   utility class so any presetable chip can pick it up. */
+.preset-chip {
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+.preset-chip:hover {
+  transform: translateY(-1px);
+}
+.preset-chip[data-active="true"] {
+  background: theme("colors.bazaar.tangerine");
+  color: #fff;
+  border-color: theme("colors.bazaar.tangerine");
+}
+
+/* Print-optimized A4 layout. Hides all chrome and prints the poster
+   surface edge-to-edge with zero margins. */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html,
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide all app chrome — header, sidebar controls, footer, tabs, and
+     the download/share buttons on each tile. */
+  header,
+  aside,
+  footer,
+  [role="tablist"],
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* When a single "print-only" surface is present (Print-A4 modal),
+     take over the page. */
+  .print-only,
+  .print-only * {
+    visibility: visible !important;
+  }
+  .print-only {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .print-only img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Default print flow — expand the preview grid to a single, full-page
+     column so posters print at readable size. */
+  .poster-grid {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+  }
+  .poster-grid > * {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 1cm;
+  }
+  .poster {
+    box-shadow: none !important;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+  }
+}

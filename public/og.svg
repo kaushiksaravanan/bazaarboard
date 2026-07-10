@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="BazaarBoard — live regional-language marketing assets in eight Indic scripts">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a0f2e"/>
+      <stop offset="0.55" stop-color="#2a1349"/>
+      <stop offset="1" stop-color="#3d1a5e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.15" r="0.9">
+      <stop offset="0" stop-color="#ff9a3c" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#ff5b9e" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb46b"/>
+      <stop offset="1" stop-color="#ff5b9e"/>
+    </linearGradient>
+    <style>
+      .title { font-family: 'Fraunces', 'Georgia', serif; font-weight: 700; fill: #fff9f0; }
+      .subtitle { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 500; fill: #f6ddc4; }
+      .kicker { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 600; letter-spacing: 4px; fill: #ffb46b; text-transform: uppercase; }
+      .chip-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 600; font-size: 13px; fill: #fff9f0; letter-spacing: 1.5px; text-transform: uppercase; }
+      .chip-glyph { font-weight: 700; fill: #fff9f0; }
+      .chip-glyph.deva { font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif; }
+      .chip-glyph.taml { font-family: 'Noto Sans Tamil', 'Noto Sans', sans-serif; }
+      .chip-glyph.beng { font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif; }
+      .chip-glyph.telu { font-family: 'Noto Sans Telugu', 'Noto Sans', sans-serif; }
+      .chip-glyph.knda { font-family: 'Noto Sans Kannada', 'Noto Sans', sans-serif; }
+      .chip-glyph.mlym { font-family: 'Noto Sans Malayalam', 'Noto Sans', sans-serif; }
+      .chip-glyph.guru { font-family: 'Noto Sans Gurmukhi', 'Noto Sans', sans-serif; }
+      .chip-glyph.gujr { font-family: 'Noto Sans Gujarati', 'Noto Sans', sans-serif; }
+      .footer { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 500; fill: #d7bfa8; }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- corner mark -->
+  <g transform="translate(72,72)">
+    <rect x="0" y="0" width="56" height="56" rx="14" fill="url(#mark)"/>
+    <text x="28" y="40" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="34" font-weight="700" fill="#1a0f2e">B</text>
+  </g>
+
+  <!-- kicker -->
+  <text x="150" y="112" class="kicker" font-size="15">BazaarBoard</text>
+
+  <!-- title (two lines) -->
+  <text x="72" y="212" class="title" font-size="72">Live regional-language</text>
+  <text x="72" y="292" class="title" font-size="72">posters, in eight scripts.</text>
+
+  <!-- subtitle -->
+  <text x="72" y="348" class="subtitle" font-size="24">Type once. Fan out to WhatsApp, print, and Google Business Profile —</text>
+  <text x="72" y="380" class="subtitle" font-size="24">script-accurate, in under four seconds, powered by Gemini NB2 Lite.</text>
+
+  <!-- script chips -->
+  <g transform="translate(72,438)">
+    <!-- Devanagari -->
+    <g transform="translate(0,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph deva" font-size="26">नमस्ते</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">हिन्दी</text>
+    </g>
+    <!-- Tamil -->
+    <g transform="translate(136,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph taml" font-size="26">வணக்கம்</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">தமிழ்</text>
+    </g>
+    <!-- Bengali -->
+    <g transform="translate(272,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph beng" font-size="26">নমস্কার</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">বাংলা</text>
+    </g>
+    <!-- Telugu -->
+    <g transform="translate(408,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph telu" font-size="26">నమస్తే</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">తెలుగు</text>
+    </g>
+    <!-- Kannada -->
+    <g transform="translate(544,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph knda" font-size="26">ನಮಸ್ಕಾರ</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">ಕನ್ನಡ</text>
+    </g>
+    <!-- Malayalam -->
+    <g transform="translate(680,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph mlym" font-size="26">നമസ്കാരം</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">മലയാളം</text>
+    </g>
+    <!-- Gurmukhi -->
+    <g transform="translate(816,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph guru" font-size="26">ਸਤ ਸ੍ਰੀ ਅਕਾਲ</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">ਪੰਜਾਬੀ</text>
+    </g>
+    <!-- Gujarati -->
+    <g transform="translate(952,0)">
+      <rect width="126" height="72" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffb46b" stroke-opacity="0.35"/>
+      <text x="63" y="38" text-anchor="middle" class="chip-glyph gujr" font-size="26">નમસ્તે</text>
+      <text x="63" y="60" text-anchor="middle" class="chip-label">ગુજરાતી</text>
+    </g>
+  </g>
+
+  <!-- footer -->
+  <text x="72" y="572" class="footer" font-size="18">bazaarboard.vercel.app</text>
+  <text x="1128" y="572" text-anchor="end" class="footer" font-size="18">Google DeepMind Bangalore Hackathon 2026</text>
+</svg>

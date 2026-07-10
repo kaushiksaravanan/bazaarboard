@@ -26,14 +26,46 @@ export interface GenerateError {
   detail?: string;
 }
 
+/**
+ * Read the user's BYOK Gemini key from sessionStorage. Never persists to
+ * localStorage or disk — cleared when the tab closes. Only sent on the
+ * X-Gemini-Key header to our own /api/generate endpoint.
+ */
+export function getByokKey(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem("bazaarboard.byokGeminiKey");
+  } catch {
+    return null;
+  }
+}
+
+export function setByokKey(key: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (key && key.trim()) {
+      window.sessionStorage.setItem("bazaarboard.byokGeminiKey", key.trim());
+    } else {
+      window.sessionStorage.removeItem("bazaarboard.byokGeminiKey");
+    }
+  } catch {
+    // sessionStorage unavailable (private mode) — silently no-op.
+  }
+}
+
 export async function generate(
   input: GenerateInput,
   signal?: AbortSignal,
 ): Promise<GenerateResult | GenerateError> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const byok = getByokKey();
+    if (byok) headers["X-Gemini-Key"] = byok;
     const res = await fetch("/api/generate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(input),
       signal,
     });

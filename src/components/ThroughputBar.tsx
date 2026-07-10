@@ -8,13 +8,14 @@
  *   - Total posters rendered this session
  *   - Rolling avg latency (last 20 renders)
  *   - Estimated cost at NB2 Lite's published rate
+ *   - Provider/fallback badge (SVG fallback visibly flagged)
  *
  * Reason: judges have heard "AI image gen" pitches all day. What they
  * haven't seen is a live counter that ticks up at 3+ posters/second
  * while the presenter types.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export interface ThroughputStats {
   count: number;
@@ -44,9 +45,11 @@ function formatUsd(x: number): string {
 
 interface Props {
   stats: ThroughputStats;
+  /** When true, triggers a one-shot celebratory flash animation. */
+  flash?: boolean;
 }
 
-export function ThroughputBar({ stats }: Props): React.ReactElement {
+export function ThroughputBar({ stats, flash }: Props): React.ReactElement {
   const avgLatency = useMemo(() => {
     if (stats.latencies.length === 0) return null;
     const recent = stats.latencies.slice(-20);
@@ -59,29 +62,70 @@ export function ThroughputBar({ stats }: Props): React.ReactElement {
     [stats.count, stats.model],
   );
 
+  // Local flash-latch: when parent toggles `flash` true, we run the CSS
+  // animation once and then release the class so it can re-fire later.
+  const [flashOn, setFlashOn] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!flash) return;
+    setFlashOn(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setFlashOn(false), 1300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [flash]);
+
+  const isFallback = !stats.model.includes("flash-lite-image");
+  const isSvgFallback = stats.model.toLowerCase().includes("svg");
+
   return (
-    <div className="flex items-center gap-4 text-xs font-mono">
+    <div
+      className={`flex items-center gap-3 text-xs font-mono flex-wrap px-2 py-1 rounded ${flashOn ? "throughput-flash" : ""}`}
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Live rendering throughput"
+    >
       <span>
-        <span className="text-bazaar-ink/50">rendered</span>{" "}
+        <span className="text-bazaar-ink/70">rendered</span>{" "}
         <span className="text-bazaar-tangerine font-bold text-sm">
           {stats.count}
         </span>
       </span>
       {avgLatency !== null ? (
         <span>
-          <span className="text-bazaar-ink/50">avg</span>{" "}
+          <span className="text-bazaar-ink/70">avg</span>{" "}
           <span className="text-bazaar-ink">
             {(avgLatency / 1000).toFixed(1)}s
           </span>
         </span>
       ) : null}
       <span>
-        <span className="text-bazaar-ink/50">cost</span>{" "}
+        <span className="text-bazaar-ink/70">cost</span>{" "}
         <span className="text-bazaar-leaf">{formatUsd(totalCost)}</span>
       </span>
-      <span className="text-bazaar-ink/40" title={stats.model}>
-        {stats.model.includes("flash-lite-image") ? "NB2 Lite" : "fallback"}
-      </span>
+      {isSvgFallback ? (
+        <span
+          className="px-2 py-0.5 rounded-full bg-bazaar-coral/15 text-bazaar-coral border border-bazaar-coral/40"
+          title="Falling back to deterministic SVG render — the image API is unavailable."
+        >
+          SVG fallback
+        </span>
+      ) : isFallback ? (
+        <span
+          className="px-2 py-0.5 rounded-full bg-bazaar-saffron/25 text-bazaar-ink/80 border border-bazaar-saffron/60"
+          title={stats.model}
+        >
+          preview fallback
+        </span>
+      ) : (
+        <span
+          className="px-2 py-0.5 rounded-full bg-bazaar-leaf/15 text-bazaar-leaf border border-bazaar-leaf/40"
+          title={stats.model}
+        >
+          NB2 Lite
+        </span>
+      )}
     </div>
   );
 }

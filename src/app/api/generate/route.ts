@@ -172,17 +172,75 @@ ${UNTRUSTED_FENCE_END}
 Return the finished poster as an image.`;
 }
 
+/**
+ * Emit a structured JSON log line. Vercel collects stdout automatically
+ * and makes each field queryable in its log dashboard, so keeping the
+ * shape consistent across code paths (success, upstream error, fallback,
+ * timeout) is what makes production debugging possible after the fact.
+ */
+function logGenerate(fields: {
+  requestId: string;
+  languageCode: string;
+  surfaceKind: string;
+  model: string;
+  latencyMs: number;
+  upstreamStatus: number | null;
+  fallback: boolean;
+  fallbackReason?: string;
+  promptTokens?: number;
+  imageBytes?: number;
+  level?: "info" | "warn" | "error";
+  message?: string;
+}): void {
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      route: "/api/generate",
+      level: fields.level ?? "info",
+      ...fields,
+    }),
+  );
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  // Prefer a runtime-supplied BYOK key over the server env key. Judges plug
+  // their own billing-enabled key in on hackathon day; the key rides in on
+  // the X-Gemini-Key header, is used once for this request, and is never
+  // persisted server-side. sessionStorage on the client is the only store.
+  const byokKey = req.headers.get("x-gemini-key")?.trim() || null;
+  const apiKey = byokKey || process.env.GEMINI_API_KEY;
+  const requestId = crypto.randomUUID();
 
   let body: GenerateBody;
   try {
     body = (await req.json()) as GenerateBody;
   } catch {
+    logGenerate({
+      requestId,
+      languageCode: "",
+      surfaceKind: "",
+      model: DEFAULT_MODEL,
+      latencyMs: 0,
+      upstreamStatus: null,
+      fallback: false,
+      level: "warn",
+      message: "bad JSON body",
+    });
     return NextResponse.json({ error: "bad JSON body" }, { status: 400 });
   }
 
   if (!body.productName?.trim() || !body.price?.trim()) {
+    logGenerate({
+      requestId,
+      languageCode: body.languageCode ?? "",
+      surfaceKind: body.surfaceKind ?? "",
+      model: DEFAULT_MODEL,
+      latencyMs: 0,
+      upstreamStatus: null,
+      fallback: false,
+      level: "warn",
+      message: "missing required fields",
+    });
     return NextResponse.json(
       { error: "productName and price are required" },
       { status: 400 },
@@ -193,11 +251,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!apiKey) {
     const started = Date.now();
     const fb = svgFallback(body);
+    const latencyMs = Date.now() - started;
+    const imageBytes = Math.floor((fb.image.length * 3) / 4);
+    logGenerate({
+      requestId,
+      languageCode: body.languageCode,
+      surfaceKind: body.surfaceKind,
+      model: "svg-fallback",
+      latencyMs,
+      upstreamStatus: null,
+      fallback: true,
+      fallbackReason: "no-billing-key",
+      imageBytes,
+    });
     return NextResponse.json({
       image: fb.image,
       mimeType: fb.mimeType,
       model: "svg-fallback",
-      latencyMs: Date.now() - started,
+      latencyMs,
       fallback: true,
       fallbackReason: "no-billing-key",
     });
@@ -229,16 +300,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // rendering even when the billing key is not plugged in.
       if (upstream.status === 429 || upstream.status === 403) {
         const fb = svgFallback(body);
+        const latencyMs = Date.now() - started;
+        const reason =
+          upstream.status === 429 ? "quota-exhausted" : "permission-denied";
+        const imageBytes = Math.floor((fb.image.length * 3) / 4);
+        logGenerate({
+          requestId,
+          languageCode: body.languageCode,
+          surfaceKind: body.surfaceKind,
+          model: "svg-fallback",
+          latencyMs,
+          upstreamStatus: upstream.status,
+          fallback: true,
+          fallbackReason: reason,
+          imageBytes,
+          level: "warn",
+        });
         return NextResponse.json({
           image: fb.image,
           mimeType: fb.mimeType,
           model: "svg-fallback",
-          latencyMs: Date.now() - started,
+          latencyMs,
           fallback: true,
-          fallbackReason:
-            upstream.status === 429 ? "quota-exhausted" : "permission-denied",
+          fallbackReason: reason,
         });
       }
+      logGenerate({
+        requestId,
+        languageCode: body.languageCode,
+        surfaceKind: body.surfaceKind,
+        model: DEFAULT_MODEL,
+        latencyMs: Date.now() - started,
+        upstreamStatus: upstream.status,
+        fallback: false,
+        level: "error",
+        message: `upstream error: ${errText.slice(0, 200)}`,
+      });
       return NextResponse.json(
         { error: "upstream error", detail: errText.slice(0, 500) },
         { status: 502 },
@@ -265,29 +362,68 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const image = part?.inlineData?.data;
     if (!image) {
       const fb = svgFallback(body);
+      const latencyMs = Date.now() - started;
+      const imageBytes = Math.floor((fb.image.length * 3) / 4);
+      logGenerate({
+        requestId,
+        languageCode: body.languageCode,
+        surfaceKind: body.surfaceKind,
+        model: "svg-fallback",
+        latencyMs,
+        upstreamStatus: upstream.status,
+        fallback: true,
+        fallbackReason: "no-image-in-response",
+        imageBytes,
+        promptTokens: json.usageMetadata?.promptTokenCount,
+        level: "warn",
+      });
       return NextResponse.json({
         image: fb.image,
         mimeType: fb.mimeType,
         model: "svg-fallback",
-        latencyMs: Date.now() - started,
+        latencyMs,
         fallback: true,
         fallbackReason: "no-image-in-response",
       });
     }
+    const latencyMs = Date.now() - started;
+    const imageBytes = Math.floor((image.length * 3) / 4);
+    logGenerate({
+      requestId,
+      languageCode: body.languageCode,
+      surfaceKind: body.surfaceKind,
+      model: DEFAULT_MODEL,
+      latencyMs,
+      upstreamStatus: upstream.status,
+      fallback: false,
+      promptTokens: json.usageMetadata?.promptTokenCount,
+      imageBytes,
+    });
     return NextResponse.json({
       image,
       mimeType: part?.inlineData?.mimeType ?? "image/png",
       model: DEFAULT_MODEL,
-      latencyMs: Date.now() - started,
+      latencyMs,
       promptTokens: json.usageMetadata?.promptTokenCount,
     });
   } catch (err) {
-    const msg =
-      err instanceof Error && err.name === "AbortError"
-        ? `upstream timeout after ${UPSTREAM_TIMEOUT_MS}ms`
-        : err instanceof Error
-          ? err.message
-          : "generate failed";
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    const msg = isTimeout
+      ? `upstream timeout after ${UPSTREAM_TIMEOUT_MS}ms`
+      : err instanceof Error
+        ? err.message
+        : "generate failed";
+    logGenerate({
+      requestId,
+      languageCode: body.languageCode,
+      surfaceKind: body.surfaceKind,
+      model: DEFAULT_MODEL,
+      latencyMs: Date.now() - started,
+      upstreamStatus: null,
+      fallback: false,
+      level: "error",
+      message: msg,
+    });
     return NextResponse.json({ error: msg }, { status: 502 });
   } finally {
     clearTimeout(timer);
