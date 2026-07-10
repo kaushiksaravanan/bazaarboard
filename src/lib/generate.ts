@@ -87,23 +87,65 @@ export function isError(v: unknown): v is GenerateError {
 }
 
 /**
- * Download a single base64 image as a PNG file.
+ * Download a single base64 image as a file. Uses a Blob + object URL
+ * anchor click; falls back to a plain data-URL anchor if the blob path
+ * fails (some browsers block programmatic clicks on object URLs).
+ *
+ * Returns true when a download appears to have been triggered, false if
+ * every strategy failed — callers can surface a "right-click and Save
+ * Image" toast so the user still has a recovery path.
  */
 export function downloadImage(
   image: string,
   mimeType: string,
   filename: string,
-): void {
-  const bin = atob(image);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  const blob = new Blob([bytes], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+): boolean {
+  if (typeof document === "undefined") return false;
+
+  const clickAnchor = (href: string): boolean => {
+    try {
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = filename;
+      a.rel = "noopener";
+      // Some Safari builds require the anchor to be in the DOM before
+      // the click is honored.
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Primary path — base64 → Blob → object URL. Works well for binary
+  // PNG/JPEG. SVG base64 also decodes fine, but some browsers refuse to
+  // download blobs of certain MIME types; the fallback below handles it.
+  try {
+    const bin = atob(image);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const ok = clickAnchor(url);
+    // Release the object URL on the next tick so the download has time
+    // to start reading it.
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    if (ok) return true;
+  } catch {
+    // fall through to the data-URL fallback
+  }
+
+  // Fallback — plain data URL anchor. Works everywhere the primary path
+  // fails (e.g. sandboxed iframes without blob: support).
+  try {
+    const dataUrl = `data:${mimeType};base64,${image}`;
+    return clickAnchor(dataUrl);
+  } catch {
+    return false;
+  }
 }
 
 /**

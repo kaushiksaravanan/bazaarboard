@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500&family=Noto+Sans+Tamil:wght@500&family=Noto+Sans+Bengali:wght@500&family=Noto+Sans+Telugu:wght@500&family=Noto+Sans+Kannada:wght@500&family=Noto+Sans+Malayalam:wght@500&family=Noto+Sans+Gurmukhi:wght@500&family=Noto+Sans+Gujarati:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f5efe3;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: #1f1409;
+      }
+      .font-display {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 500;
+      }
+      .font-display-b {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 600;
+      }
+      .font-ui {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      .f-dev {
+        font-family: "Noto Sans Devanagari", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tam {
+        font-family: "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-ben {
+        font-family: "Noto Sans Bengali", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tel {
+        font-family: "Noto Sans Telugu", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-kan {
+        font-family: "Noto Sans Kannada", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-mal {
+        font-family: "Noto Sans Malayalam", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-gur {
+        font-family: "Noto Sans Gurmukhi", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-guj {
+        font-family: "Noto Sans Gujarati", "Plus Jakarta Sans", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      .bg-canvas {
+        position: absolute;
+        inset: 0;
+        background: #f5efe3;
+        z-index: 0;
+      }
+
+      .vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0) 55%,
+          rgba(242, 107, 31, 0.05) 100%
+        );
+        z-index: 1;
+      }
+
+      /* Scene 1 */
+      .scene-1 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s1-stage {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 1600px;
+        height: 720px;
+      }
+      .s1-pill {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #ffffff;
+        border: 1px solid rgba(31, 20, 9, 0.12);
+        border-radius: 999px;
+        padding: 24px 44px;
+        font-size: 44px;
+        font-weight: 500;
+        color: #1f1409;
+        white-space: nowrap;
+        box-shadow: 0 4px 30px rgba(31, 20, 9, 0.04);
+      }
+      .s1-pill .caret {
+        display: inline-block;
+        width: 2px;
+        height: 44px;
+        background: #f26b1f;
+        vertical-align: middle;
+        margin-left: 4px;
+        transform: translateY(-2px);
+      }
+      .s1-phrase {
+        position: absolute;
+        max-width: 380px;
+        text-align: center;
+        font-size: 40px;
+        font-weight: 500;
+        color: #1f1409;
+        opacity: 0;
+      }
+      .s1-n {
+        left: 50%;
+        top: 60px;
+        transform: translateX(-50%);
+      }
+      .s1-ne {
+        right: 40px;
+        top: 130px;
+      }
+      .s1-e {
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .s1-se {
+        right: 40px;
+        bottom: 130px;
+      }
+      .s1-s {
+        left: 50%;
+        bottom: 60px;
+        transform: translateX(-50%);
+      }
+      .s1-sw {
+        left: 40px;
+        bottom: 130px;
+      }
+      .s1-w {
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .s1-nw {
+        left: 40px;
+        top: 130px;
+      }
+      .s1-hook {
+        position: absolute;
+        left: 50%;
+        bottom: -60px;
+        transform: translateX(-50%);
+        font-size: 64px;
+        white-space: nowrap;
+        opacity: 0;
+        letter-spacing: -0.01em;
+      }
+
+      /* Scene 2 */
+      .scene-2 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s2-glow {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        width: 500px;
+        height: 500px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.35) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(80px);
+        opacity: 0;
+      }
+      .s2-wordmark {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        font-size: 180px;
+        font-weight: 600;
+        color: #1f1409;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        line-height: 1;
+        opacity: 0;
+      }
+      .s2-underline {
+        position: absolute;
+        left: 50%;
+        top: 58%;
+        width: 640px;
+        height: 2px;
+        background: #f26b1f;
+        transform: translateX(-50%) scaleX(0);
+        transform-origin: left center;
+      }
+      .s2-tagline {
+        position: absolute;
+        left: 50%;
+        top: 66%;
+        transform: translateX(-50%);
+        font-size: 24px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.85);
+        white-space: nowrap;
+        opacity: 0;
+        letter-spacing: 0.005em;
+      }
+      .s2-ticker {
+        position: absolute;
+        left: 50%;
+        bottom: 60px;
+        transform: translateX(-50%);
+        font-size: 28px;
+        opacity: 0;
+        color: #1f1409;
+        white-space: nowrap;
+      }
+      .s2-ticker span {
+        margin: 0 14px;
+      }
+
+      /* Scene 3 */
+      .scene-3 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s3-panel {
+        position: absolute;
+        left: 80px;
+        top: 130px;
+        width: 500px;
+        height: 820px;
+        border-right: 1px solid rgba(31, 20, 9, 0.08);
+        padding-right: 40px;
+        opacity: 0;
+      }
+      .s3-eyebrow {
+        font-size: 20px;
+        color: rgba(31, 20, 9, 0.55);
+        margin-bottom: 24px;
+      }
+      .s3-title {
+        font-size: 44px;
+        color: #1f1409;
+        margin-bottom: 40px;
+        line-height: 1.2;
+      }
+      .s3-input {
+        display: inline-block;
+        background: #ffffff;
+        border: 1px solid rgba(31, 20, 9, 0.12);
+        border-radius: 999px;
+        padding: 16px 28px;
+        font-size: 22px;
+        color: rgba(31, 20, 9, 0.75);
+        white-space: nowrap;
+      }
+      .s3-summary {
+        margin-top: 60px;
+        display: inline-block;
+        background: #1f1409;
+        color: #f5efe3;
+        border: 1px solid #f26b1f;
+        border-radius: 999px;
+        padding: 10px 22px;
+        font-size: 16px;
+        font-weight: 600;
+        opacity: 0;
+      }
+      .s3-grid {
+        position: absolute;
+        right: 80px;
+        top: 90px;
+        width: 1180px;
+        height: 900px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 24px;
+      }
+      .s3-tile {
+        background: #fbf6ec;
+        border-top: 2px solid #f26b1f;
+        border-radius: 4px;
+        padding: 28px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        opacity: 0;
+        box-shadow: 0 2px 20px rgba(31, 20, 9, 0.04);
+      }
+      .s3-tile-phrase {
+        font-size: 34px;
+        color: #1f1409;
+        line-height: 1.15;
+        margin-bottom: 12px;
+      }
+      .s3-tile-price {
+        font-size: 22px;
+        color: rgba(31, 20, 9, 0.7);
+        margin-bottom: 8px;
+      }
+      .s3-tile-biz {
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(31, 20, 9, 0.6);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .s3-tile-badge {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        background: rgba(242, 107, 31, 0.1);
+        border: 1px solid rgba(242, 107, 31, 0.35);
+        color: #f26b1f;
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      /* Scene 4 */
+      .scene-4 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s4-half {
+        position: absolute;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+      }
+      .s4-left {
+        left: 0;
+        border-right: 1px solid rgba(31, 20, 9, 0.08);
+      }
+      .s4-right {
+        right: 0;
+      }
+      .s4-label {
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 60px;
+      }
+      .s4-label-canva {
+        color: rgba(31, 20, 9, 0.45);
+      }
+      .s4-label-bb {
+        color: #f26b1f;
+        font-weight: 700;
+      }
+      .s4-glyph {
+        font-size: 144px;
+        color: #1f1409;
+        line-height: 1;
+        position: relative;
+      }
+      .s4-broken-tag {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e43c4b;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+        opacity: 0;
+      }
+      .s4-coral-line {
+        width: 220px;
+        height: 1px;
+        background: #e43c4b;
+        margin-top: 12px;
+        opacity: 0;
+      }
+      .s4-tang-line {
+        width: 360px;
+        height: 2px;
+        background: #f26b1f;
+        margin-top: 20px;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+      .s4-punch {
+        position: absolute;
+        left: 50%;
+        bottom: 90px;
+        transform: translateX(-50%);
+        font-size: 52px;
+        color: #1f1409;
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* Scene 5 */
+      .scene-5 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s5-grid {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 1720px;
+        height: 900px;
+        display: grid;
+        grid-template-columns: repeat(30, 1fr);
+        grid-template-rows: repeat(20, 1fr);
+        gap: 4px;
+        opacity: 1;
+      }
+      .s5-thumb {
+        background: #fbf6ec;
+        border-top: 1px solid #f26b1f;
+        border-radius: 1px;
+        opacity: 0;
+      }
+      .s5-progress {
+        position: absolute;
+        left: 100px;
+        right: 100px;
+        bottom: 80px;
+        height: 2px;
+        background: rgba(31, 20, 9, 0.08);
+      }
+      .s5-progress-fill {
+        height: 100%;
+        background: #f26b1f;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+      .s5-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff8ee;
+        border: 1px solid rgba(31, 20, 9, 0.12);
+        border-radius: 20px;
+        padding: 48px 72px;
+        text-align: center;
+        min-width: 560px;
+        opacity: 0;
+      }
+      .s5-line1 {
+        font-size: 72px;
+        font-weight: 600;
+        color: #1f1409;
+        line-height: 1;
+        margin-bottom: 20px;
+        opacity: 0;
+      }
+      .s5-line2 {
+        font-size: 44px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.85);
+        line-height: 1;
+        margin-bottom: 20px;
+        opacity: 0;
+      }
+      .s5-line3 {
+        font-size: 64px;
+        font-weight: 600;
+        color: #f26b1f;
+        line-height: 1;
+        opacity: 0;
+      }
+
+      /* Scene 6 */
+      .scene-6 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s6-punch {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        font-size: 72px;
+        color: #1f1409;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        line-height: 1.15;
+      }
+      .s6-glow {
+        position: absolute;
+        left: 50%;
+        top: 46%;
+        width: 600px;
+        height: 400px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.3) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(100px);
+        opacity: 0;
+      }
+      .s6-wordmark {
+        position: absolute;
+        left: 50%;
+        top: 46%;
+        transform: translate(-50%, -50%);
+        font-size: 120px;
+        font-weight: 600;
+        color: #1f1409;
+        line-height: 1;
+        white-space: nowrap;
+        opacity: 0;
+        letter-spacing: -0.02em;
+      }
+      .s6-url {
+        position: absolute;
+        left: 50%;
+        top: 62%;
+        transform: translateX(-50%);
+        font-size: 28px;
+        font-weight: 500;
+        color: #f26b1f;
+        letter-spacing: 0.02em;
+        opacity: 0;
+      }
+      .s6-caption {
+        position: absolute;
+        left: 50%;
+        top: 68%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        font-weight: 400;
+        color: rgba(31, 20, 9, 0.6);
+        letter-spacing: 0.03em;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="22"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="bg-canvas"></div>
+      <div class="vignette"></div>
+
+      <!-- ============ SCENE 1: HOOK (0.0 - 3.0) ============ -->
+      <div
+        id="scene-1"
+        class="clip scene-1"
+        data-start="0"
+        data-duration="3.0"
+        data-track-index="1"
+      >
+        <div class="s1-stage">
+          <div class="s1-pill" id="s1-pill">
+            <span id="s1-typed"></span><span class="caret" id="s1-caret"></span>
+          </div>
+          <div class="s1-phrase s1-n f-dev">मैंगो पल्प</div>
+          <div class="s1-phrase s1-ne f-tam">மாம்பழம்</div>
+          <div class="s1-phrase s1-e f-ben">আমের পাল্প</div>
+          <div class="s1-phrase s1-se f-tel">మామిడి పల్ప్</div>
+          <div class="s1-phrase s1-s f-kan">ಮಾವಿನ ಪಲ್ಪ್</div>
+          <div class="s1-phrase s1-sw f-mal">മാങ്ങാ പൾപ്പ്</div>
+          <div class="s1-phrase s1-w f-gur">ਅੰਬ ਪਲਪ</div>
+          <div class="s1-phrase s1-nw f-guj">કેરીનો પલ્પ</div>
+          <div class="s1-hook font-display">One input. Every Indian script.</div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 2: LOGO REVEAL (3.0 - 6.5) ============ -->
+      <div
+        id="scene-2"
+        class="clip scene-2"
+        data-start="3.0"
+        data-duration="3.5"
+        data-track-index="1"
+      >
+        <div class="s2-glow" id="s2-glow"></div>
+        <div class="s2-wordmark font-display-b" id="s2-wordmark">BazaarBoard</div>
+        <div class="s2-underline" id="s2-underline"></div>
+        <div class="s2-tagline" id="s2-tagline">
+          Type once. Print, post, share — in every Indian script that matters.
+        </div>
+        <div class="s2-ticker" id="s2-ticker">
+          <span class="f-dev">मैंगो पल्प</span>
+          <span>·</span>
+          <span class="f-tam">மாம்பழம்</span>
+          <span>·</span>
+          <span class="f-ben">আমের পাল্প</span>
+          <span>·</span>
+          <span class="f-tel">మామిడి పల్ప్</span>
+          <span>·</span>
+          <span class="f-kan">ಮಾವಿನ ಪಲ್ಪ್</span>
+          <span>·</span>
+          <span class="f-mal">മാങ്ങാ പൾപ്പ്</span>
+          <span>·</span>
+          <span class="f-gur">ਅੰਬ ਪਲਪ</span>
+          <span>·</span>
+          <span class="f-guj">કેરીનો પલ્પ</span>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 3: LIVE EDITOR (6.5 - 10.5) ============ -->
+      <div
+        id="scene-3"
+        class="clip scene-3"
+        data-start="6.5"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s3-panel" id="s3-panel">
+          <div class="s3-eyebrow font-display">
+            Live editor · 8 languages · 1 surface
+          </div>
+          <div class="s3-title font-display-b">Type once.<br />Render everywhere.</div>
+          <div class="s3-input">Alphonso mango pulp / ₹120</div>
+          <div class="s3-summary" id="s3-summary">
+            8 posters · 3.1s wall clock · Gemini NB2 Lite
+          </div>
+        </div>
+        <div class="s3-grid">
+          <div class="s3-tile" id="s3-t1">
+            <div>
+              <div class="s3-tile-phrase f-dev">मैंगो पल्प</div>
+              <div class="s3-tile-price f-dev">₹120 / किलो</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t2">
+            <div>
+              <div class="s3-tile-phrase f-tam">மாம்பழம்</div>
+              <div class="s3-tile-price f-tam">₹120 / கிலோ</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t3">
+            <div>
+              <div class="s3-tile-phrase f-ben">আমের পাল্প</div>
+              <div class="s3-tile-price f-ben">₹120 / কেজি</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t4">
+            <div>
+              <div class="s3-tile-phrase f-tel">మామిడి పల్ప్</div>
+              <div class="s3-tile-price f-tel">₹120 / కిలో</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t5">
+            <div>
+              <div class="s3-tile-phrase f-kan">ಮಾವಿನ ಪಲ್ಪ್</div>
+              <div class="s3-tile-price f-kan">₹120 / ಕಿಲೋ</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t6">
+            <div>
+              <div class="s3-tile-phrase f-mal">മാങ്ങാ പൾപ്പ്</div>
+              <div class="s3-tile-price f-mal">₹120 / കിലോ</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t7">
+            <div>
+              <div class="s3-tile-phrase f-gur">ਅੰਬ ਪਲਪ</div>
+              <div class="s3-tile-price f-gur">₹120 / ਕਿੱਲੋ</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+          <div class="s3-tile" id="s3-t8">
+            <div>
+              <div class="s3-tile-phrase f-guj">કેરીનો પલ્પ</div>
+              <div class="s3-tile-price f-guj">₹120 / કિલો</div>
+            </div>
+            <div class="s3-tile-biz">Bazaar Kirana</div>
+            <div class="s3-tile-badge">0.3s · NB2 Lite</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 4: THE MOAT (10.5 - 14.5) ============ -->
+      <div
+        id="scene-4"
+        class="clip scene-4"
+        data-start="10.5"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s4-half s4-left" id="s4-left">
+          <div class="s4-label s4-label-canva">Canva</div>
+          <div class="s4-broken-tag" id="s4-tag">broken conjunct</div>
+          <div class="s4-glyph f-dev">मैंगो पलप</div>
+          <div class="s4-coral-line" id="s4-coral"></div>
+        </div>
+        <div class="s4-half s4-right" id="s4-right">
+          <div class="s4-label s4-label-bb">BazaarBoard</div>
+          <div class="s4-broken-tag" style="opacity: 0; visibility: hidden">
+            spacer
+          </div>
+          <div class="s4-glyph f-dev">मैंगो पल्प</div>
+          <div class="s4-tang-line" id="s4-tang"></div>
+        </div>
+        <div class="s4-punch font-display" id="s4-punch">
+          Canva breaks. BazaarBoard doesn't.
+        </div>
+      </div>
+
+      <!-- ============ SCENE 5: BULK (14.5 - 18.5) ============ -->
+      <div
+        id="scene-5"
+        class="clip scene-5"
+        data-start="14.5"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s5-grid" id="s5-grid"></div>
+        <div class="s5-progress">
+          <div class="s5-progress-fill" id="s5-progress"></div>
+        </div>
+        <div class="s5-card" id="s5-card">
+          <div class="s5-line1 font-display-b" id="s5-l1">600 posters</div>
+          <div class="s5-line2 font-display" id="s5-l2">42 seconds</div>
+          <div class="s5-line3 font-display-b" id="s5-l3">$0.00</div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 6: PUNCHLINE + CTA (18.5 - 22.0) ============ -->
+      <div
+        id="scene-6"
+        class="clip scene-6"
+        data-start="18.5"
+        data-duration="3.5"
+        data-track-index="1"
+      >
+        <div class="s6-punch font-display" id="s6-l1">63M kirana stores.</div>
+        <div class="s6-punch font-display" id="s6-l2">375M posters/year.</div>
+        <div class="s6-punch font-display" id="s6-l3">
+          All in the script they read.
+        </div>
+        <div class="s6-glow" id="s6-glow"></div>
+        <div class="s6-wordmark font-display-b" id="s6-wordmark">BazaarBoard</div>
+        <div class="s6-url" id="s6-url">bazaarboard.vercel.app</div>
+        <div class="s6-caption" id="s6-caption">
+          Google DeepMind Bangalore Hackathon · Idea 3
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Build the tiny 600-thumbnail grid deterministically
+      (function buildThumbnails() {
+        const grid = document.getElementById("s5-grid");
+        if (!grid) return;
+        const total = 600;
+        for (let i = 0; i < total; i++) {
+          const d = document.createElement("div");
+          d.className = "s5-thumb";
+          d.setAttribute("data-idx", i);
+          grid.appendChild(d);
+        }
+      })();
+
+      // ==================== SCENE 1 ====================
+      // Typewriter effect on the input pill
+      const typedTarget = "Alphonso mango pulp  /  ₹120";
+      const s1typed = document.getElementById("s1-typed");
+      // Reveal characters via a proxy tween
+      const charState = { n: 0 };
+      tl.to(
+        charState,
+        {
+          n: typedTarget.length,
+          duration: 1.2,
+          ease: "none",
+          onUpdate: () => {
+            if (s1typed) {
+              s1typed.textContent = typedTarget.slice(0, Math.round(charState.n));
+            }
+          },
+        },
+        0.0
+      );
+      // Blinking caret via opacity oscillation (finite)
+      tl.to(
+        "#s1-caret",
+        { opacity: 0.2, duration: 0.35, repeat: 7, yoyo: true, ease: "power1.inOut" },
+        0.0
+      );
+
+      // 8 phrases fan out on the beat grid (~0.08s apart per spec, but spec table shows 0.08s;
+      // brief says every-other beat ~0.55s — we compromise at 0.08s for hook pacing then hold)
+      const phraseOrder = [
+        ".s1-n",
+        ".s1-ne",
+        ".s1-e",
+        ".s1-se",
+        ".s1-s",
+        ".s1-sw",
+        ".s1-w",
+        ".s1-nw",
+      ];
+      const phraseStarts = [1.3, 1.38, 1.46, 1.54, 1.62, 1.7, 1.78, 1.86];
+      phraseOrder.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, scale: 0.94, y: 8 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          phraseStarts[i]
+        );
+      });
+
+      // Hook line fade-up
+      tl.fromTo(
+        ".s1-hook",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        2.4
+      );
+
+      // ==================== SCENE 2 ====================
+      // Ticker fades in first as phrases reflow
+      tl.fromTo(
+        "#s2-ticker",
+        { opacity: 0, y: 10 },
+        { opacity: 0.65, y: 0, duration: 0.4, ease: "power2.out" },
+        3.0
+      );
+
+      // Wordmark scale-in
+      tl.fromTo(
+        "#s2-wordmark",
+        { opacity: 0, scale: 0.94 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
+        3.4
+      );
+
+      // Radial glow behind wordmark (subtle breathing)
+      tl.fromTo(
+        "#s2-glow",
+        { opacity: 0 },
+        { opacity: 0.22, duration: 0.6, ease: "power2.out" },
+        3.5
+      );
+      tl.to(
+        "#s2-glow",
+        {
+          opacity: 0.28,
+          duration: 0.8,
+          repeat: 2,
+          yoyo: true,
+          ease: "sine.inOut",
+        },
+        4.1
+      );
+
+      // Underline sweep
+      tl.fromTo(
+        "#s2-underline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.7, ease: "power3.out" },
+        3.9
+      );
+
+      // Tagline fade-up
+      tl.fromTo(
+        "#s2-tagline",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        4.6
+      );
+
+      // ==================== SCENE 3 ====================
+      // Left panel fades in
+      tl.fromTo(
+        "#s3-panel",
+        { opacity: 0, x: -20 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        6.5
+      );
+
+      // 8 tiles bloom in reading order
+      const tileIds = [
+        "#s3-t1",
+        "#s3-t2",
+        "#s3-t3",
+        "#s3-t4",
+        "#s3-t5",
+        "#s3-t6",
+        "#s3-t7",
+        "#s3-t8",
+      ];
+      const tileStarts = [6.6, 6.95, 7.3, 7.65, 8.0, 8.35, 8.7, 9.05];
+      tileIds.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, scale: 0.92, y: 12 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power2.out" },
+          tileStarts[i]
+        );
+      });
+
+      // Summary pill
+      tl.fromTo(
+        "#s3-summary",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        9.9
+      );
+
+      // ==================== SCENE 4 ====================
+      // Both halves settle in together
+      tl.fromTo(
+        "#s4-left",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        10.5
+      );
+      tl.fromTo(
+        "#s4-right",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        10.5
+      );
+
+      // Coral hairline + broken tag on the wrong side
+      tl.fromTo(
+        "#s4-tag",
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        11.2
+      );
+      tl.fromTo(
+        "#s4-coral",
+        { opacity: 0, scaleX: 0 },
+        { opacity: 1, scaleX: 1, duration: 0.3, ease: "power2.out" },
+        11.2
+      );
+
+      // Tangerine underline sweeps under the correct glyph
+      tl.fromTo(
+        "#s4-tang",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power3.out" },
+        11.5
+      );
+
+      // Punchline
+      tl.fromTo(
+        "#s4-punch",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        12.6
+      );
+
+      // ==================== SCENE 5 ====================
+      // 600 thumbnails stream in over 1.8s
+      const thumbs = document.querySelectorAll(".s5-thumb");
+      thumbs.forEach((t, i) => {
+        const start = 14.5 + (i / 600) * 1.8;
+        tl.to(
+          t,
+          { opacity: 1, duration: 0.15, ease: "none" },
+          start
+        );
+      });
+
+      // Progress hairline sweep
+      tl.fromTo(
+        "#s5-progress",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 1.8, ease: "power1.inOut" },
+        14.5
+      );
+
+      // Dim the grid slightly when stat card comes up
+      tl.to(
+        "#s5-grid",
+        { opacity: 0.35, duration: 0.4, ease: "power2.out" },
+        16.2
+      );
+
+      // Stat card fades up
+      tl.fromTo(
+        "#s5-card",
+        { opacity: 0, y: 10, scale: 0.98 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" },
+        16.3
+      );
+
+      // Stat lines cascade
+      tl.fromTo(
+        "#s5-l1",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        16.4
+      );
+      tl.fromTo(
+        "#s5-l2",
+        { opacity: 0, y: 8 },
+        { opacity: 0.85, y: 0, duration: 0.35, ease: "power2.out" },
+        16.7
+      );
+      tl.fromTo(
+        "#s5-l3",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        17.0
+      );
+
+      // $0.20 count-up (8 tick sequence over 0.9s)
+      const priceTicks = [
+        "$0.00",
+        "$0.03",
+        "$0.07",
+        "$0.11",
+        "$0.14",
+        "$0.17",
+        "$0.19",
+        "$0.20",
+      ];
+      const priceState = { i: 0 };
+      const priceEl = document.getElementById("s5-l3");
+      tl.to(
+        priceState,
+        {
+          i: priceTicks.length - 1,
+          duration: 0.9,
+          ease: "power2.out",
+          onUpdate: () => {
+            if (priceEl) {
+              const idx = Math.min(
+                priceTicks.length - 1,
+                Math.round(priceState.i)
+              );
+              priceEl.textContent = priceTicks[idx];
+            }
+          },
+        },
+        17.05
+      );
+
+      // ==================== SCENE 6 ====================
+      // Three punchline lines cascade
+      tl.fromTo(
+        "#s6-l1",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        18.5
+      );
+      tl.to("#s6-l1", { opacity: 0.4, duration: 0.4, ease: "power2.out" }, 19.4);
+      tl.to("#s6-l1", { opacity: 0.15, duration: 0.4, ease: "power2.out" }, 20.3);
+      tl.to("#s6-l1", { opacity: 0.1, duration: 0.3, ease: "power2.out" }, 21.3);
+
+      tl.fromTo(
+        "#s6-l2",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        19.4
+      );
+      tl.to("#s6-l2", { opacity: 0.4, duration: 0.4, ease: "power2.out" }, 20.3);
+      tl.to("#s6-l2", { opacity: 0.1, duration: 0.3, ease: "power2.out" }, 21.3);
+
+      tl.fromTo(
+        "#s6-l3",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        20.3
+      );
+      tl.to("#s6-l3", { opacity: 0.1, duration: 0.3, ease: "power2.out" }, 21.3);
+
+      // Position the three punch lines vertically stacked
+      gsap.set("#s6-l1", { y: -100 });
+      gsap.set("#s6-l2", { y: 0 });
+      gsap.set("#s6-l3", { y: 100 });
+
+      // Wordmark scale-in
+      tl.fromTo(
+        "#s6-wordmark",
+        { opacity: 0, scale: 0.94 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" },
+        21.3
+      );
+
+      // Radial glow subtle breathing
+      tl.fromTo(
+        "#s6-glow",
+        { opacity: 0 },
+        { opacity: 0.24, duration: 0.4, ease: "power2.out" },
+        21.3
+      );
+      tl.to(
+        "#s6-glow",
+        {
+          opacity: 0.3,
+          duration: 0.4,
+          repeat: 1,
+          yoyo: true,
+          ease: "sine.inOut",
+        },
+        21.7
+      );
+
+      // URL
+      tl.fromTo(
+        "#s6-url",
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        21.5
+      );
+
+      // Sub-caption
+      tl.fromTo(
+        "#s6-caption",
+        { opacity: 0, y: 6 },
+        { opacity: 0.6, y: 0, duration: 0.3, ease: "power2.out" },
+        21.6
+      );
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

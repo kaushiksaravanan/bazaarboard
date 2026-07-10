@@ -19,6 +19,7 @@ import {
   SurfacePicker,
 } from "@/components/SurfacePicker";
 import { PosterCell } from "@/components/PosterCell";
+import { Onboarding } from "@/components/Onboarding";
 import { ThroughputBar, ThroughputStats } from "@/components/ThroughputBar";
 import { AllScriptsStrip } from "@/components/AllScriptsStrip";
 import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
@@ -41,6 +42,7 @@ interface CellState {
   loading: boolean;
   error?: string;
   latencyMs?: number;
+  fallback?: boolean;
   key: string;
 }
 
@@ -172,6 +174,7 @@ export default function Home(): React.ReactElement {
                 mimeType: result.mimeType,
                 loading: false,
                 latencyMs: result.latencyMs,
+                fallback: result.fallback ?? false,
                 key: String(nonce),
               },
             };
@@ -316,6 +319,7 @@ export default function Home(): React.ReactElement {
               mimeType: result.mimeType,
               loading: false,
               latencyMs: result.latencyMs,
+              fallback: result.fallback ?? false,
               key: "bulk",
             },
           };
@@ -449,12 +453,52 @@ export default function Home(): React.ReactElement {
   const [byokPresent, setByokPresent] = useState(false);
   const [showAllScripts, setShowAllScripts] = useState(true);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const editorSectionRef = useRef<HTMLElement | null>(null);
   const [printTarget, setPrintTarget] = useState<{
     image: string;
     mimeType: string;
     alt: string;
   } | null>(null);
   const csvFileRef = useRef<HTMLInputElement | null>(null);
+
+  // First-run onboarding gate. Reads localStorage on mount; if the user
+  // hasn't dismissed the intro before, show it. Store additive, not
+  // destructive — never touches other keys.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const seen = window.localStorage.getItem("bazaarboard.onboarded");
+      if (seen !== "true") setShowOnboarding(true);
+    } catch {
+      // localStorage blocked (private mode) — just skip the intro.
+    }
+  }, []);
+
+  const dismissOnboarding = useCallback(
+    (target?: "start" | "demo") => {
+      setShowOnboarding(false);
+      try {
+        window.localStorage.setItem("bazaarboard.onboarded", "true");
+      } catch {
+        // no-op if storage is blocked
+      }
+      trackEvent("onboarding_dismissed", {
+        target: target ?? "close",
+      });
+      if (target === "demo") {
+        // Give the overlay a tick to unmount, then scroll to the live
+        // editor so the user can see the poster grid in action.
+        window.setTimeout(() => {
+          editorSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 60);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const present = Boolean(getByokKey());
@@ -504,6 +548,15 @@ export default function Home(): React.ReactElement {
           </p>
           <div className="flex items-center gap-2 flex-wrap ml-auto">
             <ThroughputBar stats={stats} flash={throughputFlash} />
+            <button
+              type="button"
+              onClick={() => setShowOnboarding(true)}
+              aria-label="Open the getting-started guide"
+              title="How BazaarBoard works"
+              className="no-print w-8 h-8 rounded-full border border-bazaar-ink/30 hover:border-bazaar-tangerine/60 bg-white text-sm font-semibold text-bazaar-ink/80 hover:text-bazaar-tangerine transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
+            >
+              ?
+            </button>
             <button
               onClick={() => setByokOpen(true)}
               className="no-print text-xs px-3 py-2 rounded-full border border-bazaar-ink/30 hover:border-bazaar-tangerine/60 bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
@@ -559,7 +612,10 @@ export default function Home(): React.ReactElement {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+      <section
+        ref={editorSectionRef}
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
+      >
         {/* Left: input controls */}
         <aside
           aria-label="Poster configuration"
@@ -970,13 +1026,13 @@ export default function Home(): React.ReactElement {
                                 : undefined
                             }
                             onDownload={() => {
-                              if (!state?.image) return;
+                              if (!state?.image) return false;
                               trackEvent("download_clicked", {
                                 languageCode: lang.code,
                                 surfaceKind: surface,
                                 mode,
                               });
-                              downloadImage(
+                              return downloadImage(
                                 state.image,
                                 state.mimeType ?? "image/png",
                                 `${safe}--${lang.code}--${surface}.png`,
@@ -1037,6 +1093,8 @@ export default function Home(): React.ReactElement {
           {toast}
         </div>
       ) : null}
+
+      {showOnboarding ? <Onboarding onDismiss={dismissOnboarding} /> : null}
     </main>
   );
 }

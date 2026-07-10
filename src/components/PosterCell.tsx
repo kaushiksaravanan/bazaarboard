@@ -6,11 +6,15 @@
  * and stale (image visible but new one is loading in).
  *
  * Beyond the image, each cell exposes:
- *   - download (PNG file)
+ *   - download (PNG file, with a data-URL fallback if the blob path
+ *     fails, and a "Save Image instead" toast if both strategies fail)
  *   - WhatsApp share (copies the image to clipboard, then opens wa.me
  *     with the caption pre-filled — because wa.me can't attach images,
  *     the clipboard-copy is what lets the user paste it into the chat)
  *   - print A4 (only shown when onPrint is provided)
+ *   - a friendly "Live status pill" driven by the fallback flag on the
+ *     generate result: "AI rendering active" when a real model
+ *     answered, or "Preview mode" when the SVG fallback did.
  */
 
 import { useState } from "react";
@@ -22,6 +26,7 @@ interface CellState {
   loading: boolean;
   error?: string;
   latencyMs?: number;
+  fallback?: boolean;
 }
 
 interface Props {
@@ -31,7 +36,13 @@ interface Props {
   languageNativeName: string;
   languageEnglishName: string;
   fontClass: string;
-  onDownload: () => void;
+  /**
+   * Called when the download button is clicked. Should return true if
+   * the browser was successfully asked to download the file, false if
+   * every strategy failed (in which case we surface a toast telling the
+   * user to right-click + Save Image).
+   */
+  onDownload: () => boolean | Promise<boolean> | void;
   productName?: string;
   price?: string;
   businessName?: string;
@@ -81,6 +92,24 @@ export function PosterCell({
   const [waStatus, setWaStatus] = useState<"idle" | "copied" | "text-only">(
     "idle",
   );
+  const [downloadMsg, setDownloadMsg] = useState<string | null>(null);
+
+  const handleDownload = async (): Promise<void> => {
+    try {
+      const result = await Promise.resolve(onDownload());
+      if (result === false) {
+        setDownloadMsg(
+          "Couldn't download — right-click the poster and Save Image instead.",
+        );
+        window.setTimeout(() => setDownloadMsg(null), 5000);
+      }
+    } catch {
+      setDownloadMsg(
+        "Couldn't download — right-click the poster and Save Image instead.",
+      );
+      window.setTimeout(() => setDownloadMsg(null), 5000);
+    }
+  };
 
   const shareWhatsApp = async (): Promise<void> => {
     if (!state?.image) return;
@@ -113,16 +142,18 @@ export function PosterCell({
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const isFallback = state?.fallback === true;
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-2 flex-wrap">
-        <p className="text-sm font-medium">
+    <div className="space-y-2 min-w-0 max-w-full">
+      <div className="flex items-baseline justify-between gap-2 flex-wrap min-w-0">
+        <p className="text-sm font-medium min-w-0 break-words">
           <span className={fontClass}>{languageNativeName}</span>
           <span className="ml-2 text-bazaar-ink/70">
             {languageEnglishName}
           </span>
         </p>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs flex-wrap">
           {state?.loading ? (
             <span
               className="text-bazaar-tangerine animate-pulse"
@@ -138,7 +169,7 @@ export function PosterCell({
           {hasImage ? (
             <>
               <button
-                onClick={onDownload}
+                onClick={() => void handleDownload()}
                 className="no-print text-bazaar-ink/70 hover:text-bazaar-tangerine transition-colors underline-offset-2 hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
                 aria-label={`Download ${languageEnglishName} poster`}
               >
@@ -175,9 +206,37 @@ export function PosterCell({
           ) : null}
         </div>
       </div>
+      {/* Live status pill — human-friendly rendering-mode indicator. */}
+      {hasImage ? (
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          {isFallback ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-bazaar-saffron/20 text-bazaar-ink/80 border border-bazaar-saffron/50 px-2.5 py-0.5 text-[11px] font-medium max-w-full"
+              title="A design-only preview is shown. Add a Gemini key to unlock full AI rendering."
+            >
+              <span aria-hidden="true">✨</span>
+              <span className="truncate">
+                Preview mode — set a Gemini key for full AI rendering
+              </span>
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-bazaar-leaf/10 text-bazaar-leaf border border-bazaar-leaf/40 px-2.5 py-0.5 text-[11px] font-medium max-w-full"
+              title="Rendered by the AI image model."
+            >
+              <span aria-hidden="true">🎨</span>
+              <span className="truncate">AI rendering active</span>
+            </span>
+          )}
+        </div>
+      ) : null}
       <div
         className={`poster transition-opacity ${state?.loading && hasImage ? "opacity-70" : "opacity-100"}`}
-        style={{ aspectRatio: aspect }}
+        style={{
+          aspectRatio: aspect,
+          overflow: "hidden",
+          maxWidth: "100%",
+        }}
         role="img"
         aria-label={
           hasImage
@@ -193,9 +252,10 @@ export function PosterCell({
           <img
             src={`data:${state.mimeType ?? "image/png"};base64,${state.image}`}
             alt={`${languageEnglishName} poster`}
+            style={{ maxWidth: "100%" }}
           />
         ) : state?.error ? (
-          <div className="p-4 h-full flex items-center justify-center text-xs text-bazaar-coral text-center leading-relaxed">
+          <div className="p-4 h-full flex items-center justify-center text-xs text-bazaar-coral text-center leading-relaxed break-words">
             {state.error}
           </div>
         ) : state?.loading ? (
@@ -210,6 +270,15 @@ export function PosterCell({
           </div>
         )}
       </div>
+      {downloadMsg ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className="text-[11px] text-bazaar-coral leading-snug break-words"
+        >
+          {downloadMsg}
+        </p>
+      ) : null}
     </div>
   );
 }
