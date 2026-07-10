@@ -17,6 +17,8 @@ export interface GenerateResult {
   model: string;
   latencyMs: number;
   promptTokens?: number;
+  fallback?: boolean;
+  fallbackReason?: string;
 }
 
 export interface GenerateError {
