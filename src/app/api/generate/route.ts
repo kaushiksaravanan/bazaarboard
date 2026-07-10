@@ -81,6 +81,21 @@ function svgFallback(body: GenerateBody): {
   const price = escXml(body.price);
   const business = body.businessName ? escXml(body.businessName) : "";
 
+  // Text sizes auto-shrink for long strings so the SVG fallback stays
+  // visually clean at any product-name length.
+  const scale = (base: number, chars: number, softLimit: number) =>
+    chars <= softLimit ? base : base * Math.max(0.35, softLimit / chars);
+  const prodFont = scale(
+    Math.min(dim.w * 0.09, 140),
+    body.productName.length,
+    16,
+  );
+  const priceFont = scale(
+    Math.min(dim.w * 0.11, 176),
+    body.price.length,
+    10,
+  );
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${dim.w}" height="${dim.h}" viewBox="0 0 ${dim.w} ${dim.h}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
@@ -97,9 +112,9 @@ function svgFallback(body: GenerateBody): {
   </defs>
   <rect width="100%" height="100%" fill="url(#bg)"/>
   <rect x="60" y="60" width="${dim.w - 120}" height="${dim.h - 120}" fill="none" stroke="#fff" stroke-opacity="0.18" stroke-width="4" rx="24"/>
-  <text x="${dim.w / 2}" y="${dim.h * 0.42}" text-anchor="middle" class="prod" font-size="${Math.min(dim.w * 0.09, 128)}">${product}</text>
+  <text x="${dim.w / 2}" y="${dim.h * 0.42}" text-anchor="middle" class="prod" font-size="${prodFont}" textLength="${dim.w - 240}" lengthAdjust="spacingAndGlyphs">${product}</text>
   <rect x="${dim.w * 0.15}" y="${dim.h * 0.48}" width="${dim.w * 0.7}" height="${dim.h * 0.14}" fill="#fff" rx="24"/>
-  <text x="${dim.w / 2}" y="${dim.h * 0.585}" text-anchor="middle" class="price" font-size="${Math.min(dim.w * 0.11, 160)}">${price}</text>
+  <text x="${dim.w / 2}" y="${dim.h * 0.585}" text-anchor="middle" class="price" font-size="${priceFont}" textLength="${dim.w * 0.6}" lengthAdjust="spacingAndGlyphs">${price}</text>
   ${business ? `<text x="${dim.w / 2}" y="${dim.h - 120}" text-anchor="middle" class="biz" font-size="${Math.min(dim.w * 0.035, 44)}">${business.toUpperCase()}</text>` : ""}
   <text x="${dim.w / 2}" y="${dim.h - 70}" text-anchor="middle" class="tag" font-size="${Math.min(dim.w * 0.022, 28)}">BazaarBoard · Typography-perfect fallback</text>
 </svg>`;
