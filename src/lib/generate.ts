@@ -1,0 +1,126 @@
+"use client";
+
+import JSZip from "jszip";
+
+export interface GenerateInput {
+  productName: string;
+  price: string;
+  businessName?: string;
+  languageCode: string;
+  surfaceKind: "poster" | "whatsapp" | "square";
+  brandColor?: string;
+}
+
+export interface GenerateResult {
+  image: string; // base64
+  mimeType: string;
+  model: string;
+  latencyMs: number;
+  promptTokens?: number;
+}
+
+export interface GenerateError {
+  error: string;
+  detail?: string;
+}
+
+export async function generate(
+  input: GenerateInput,
+  signal?: AbortSignal,
+): Promise<GenerateResult | GenerateError> {
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      signal,
+    });
+    if (!res.ok) {
+      const errBody = (await res.json().catch(() => ({}))) as GenerateError;
+      return { error: errBody.error ?? `HTTP ${res.status}` };
+    }
+    return (await res.json()) as GenerateResult;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: "cancelled" };
+    }
+    return { error: err instanceof Error ? err.message : "network error" };
+  }
+}
+
+export function isError(v: unknown): v is GenerateError {
+  return typeof v === "object" && v !== null && "error" in v;
+}
+
+/**
+ * Download a single base64 image as a PNG file.
+ */
+export function downloadImage(
+  image: string,
+  mimeType: string,
+  filename: string,
+): void {
+  const bin = atob(image);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const blob = new Blob([bytes], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Bundle a set of generated images into a ZIP file, name them
+ * sensibly, and trigger a download.
+ */
+export async function downloadZip(
+  files: Array<{ filename: string; image: string; mimeType: string }>,
+  zipName: string,
+): Promise<void> {
+  const zip = new JSZip();
+  for (const f of files) {
+    // JSZip accepts base64 directly with the base64 flag.
+    zip.file(f.filename, f.image, { base64: true });
+  }
+  const blob = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = zipName;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Run N generate() calls with a bounded concurrency limit. Yields
+ * result callbacks as each item completes so the UI can update
+ * incrementally. The order of yields is by completion time, NOT input
+ * order — the caller carries the input index in the item to reassemble.
+ */
+export async function batchGenerate<T>(
+  items: Array<T & { input: GenerateInput }>,
+  concurrency: number,
+  onResult: (item: T & { input: GenerateInput }, result: GenerateResult | GenerateError) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  let cursor = 0;
+  const workers: Promise<void>[] = [];
+
+  const runOne = async (): Promise<void> => {
+    while (cursor < items.length) {
+      const idx = cursor++;
+      const item = items[idx];
+      if (signal?.aborted) return;
+      const result = await generate(item.input, signal);
+      onResult(item, result);
+    }
+  };
+
+  for (let i = 0; i < Math.min(concurrency, items.length); i++) {
+    workers.push(runOne());
+  }
+  await Promise.all(workers);
+}
