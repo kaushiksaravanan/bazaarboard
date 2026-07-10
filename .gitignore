@@ -15,3 +15,4 @@ out/
 
 # Build products
 dist/
+*.tsbuildinfo
