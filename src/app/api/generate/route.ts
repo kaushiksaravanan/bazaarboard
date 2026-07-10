@@ -102,21 +102,22 @@ function svgFallback(body: GenerateBody): {
       <stop offset="0" stop-color="${brand}"/>
       <stop offset="1" stop-color="#1f1409"/>
     </linearGradient>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700&amp;family=Noto+Sans+Devanagari:wght@400..900&amp;family=Noto+Sans+Tamil:wght@400..900&amp;family=Noto+Sans+Bengali:wght@400..900&amp;family=Noto+Sans+Telugu:wght@400..900&amp;family=Noto+Sans+Kannada:wght@400..900&amp;family=Noto+Sans+Malayalam:wght@400..900&amp;family=Noto+Sans+Gurmukhi:wght@400..900&amp;family=Noto+Sans+Gujarati:wght@400..900&amp;family=Plus+Jakarta+Sans:wght@400..800&amp;display=swap');
-      .prod{font-family:'${fontFamily}',sans-serif;font-weight:800;fill:#fff;}
-      .price{font-family:'${fontFamily}',sans-serif;font-weight:700;fill:${brand};}
-      .biz{font-family:'Plus Jakarta Sans','${fontFamily}',sans-serif;font-weight:600;fill:#fff;opacity:.85;letter-spacing:2px;}
-      .tag{font-family:'Fraunces',serif;font-style:italic;fill:#fff;opacity:.55;}
-    </style>
   </defs>
   <rect width="100%" height="100%" fill="url(#bg)"/>
   <rect x="60" y="60" width="${dim.w - 120}" height="${dim.h - 120}" fill="none" stroke="#fff" stroke-opacity="0.18" stroke-width="4" rx="24"/>
-  <text x="${dim.w / 2}" y="${dim.h * 0.42}" text-anchor="middle" class="prod" font-size="${prodFont}" textLength="${dim.w - 240}" lengthAdjust="spacingAndGlyphs">${product}</text>
-  <rect x="${dim.w * 0.15}" y="${dim.h * 0.48}" width="${dim.w * 0.7}" height="${dim.h * 0.14}" fill="#fff" rx="24"/>
-  <text x="${dim.w / 2}" y="${dim.h * 0.585}" text-anchor="middle" class="price" font-size="${priceFont}" textLength="${dim.w * 0.6}" lengthAdjust="spacingAndGlyphs">${price}</text>
-  ${business ? `<text x="${dim.w / 2}" y="${dim.h - 120}" text-anchor="middle" class="biz" font-size="${Math.min(dim.w * 0.035, 44)}">${business.toUpperCase()}</text>` : ""}
-  <text x="${dim.w / 2}" y="${dim.h - 70}" text-anchor="middle" class="tag" font-size="${Math.min(dim.w * 0.022, 28)}">BazaarBoard · Typography-perfect fallback</text>
+  <foreignObject x="0" y="0" width="${dim.w}" height="${dim.h}">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="width:${dim.w}px;height:${dim.h}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${dim.w * 0.08}px;box-sizing:border-box;font-family:'${fontFamily}',sans-serif;">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700&amp;family=Noto+Sans+Devanagari:wght@400..900&amp;family=Noto+Sans+Tamil:wght@400..900&amp;family=Noto+Sans+Bengali:wght@400..900&amp;family=Noto+Sans+Telugu:wght@400..900&amp;family=Noto+Sans+Kannada:wght@400..900&amp;family=Noto+Sans+Malayalam:wght@400..900&amp;family=Noto+Sans+Gurmukhi:wght@400..900&amp;family=Noto+Sans+Gujarati:wght@400..900&amp;family=Plus+Jakarta+Sans:wght@400..800&amp;display=swap');
+      </style>
+      <div style="font-size:clamp(48px, ${prodFont}px, ${prodFont}px);font-weight:800;color:#fff;text-align:center;line-height:1.15;overflow-wrap:break-word;word-break:break-word;max-width:100%;">${product}</div>
+      <div style="margin-top:${dim.h * 0.05}px;background:#fff;border-radius:${dim.w * 0.03}px;padding:${dim.w * 0.04}px ${dim.w * 0.06}px;max-width:80%;">
+        <div style="font-size:clamp(48px, ${priceFont}px, ${priceFont}px);font-weight:700;color:${brand};text-align:center;line-height:1.1;white-space:nowrap;">${price}</div>
+      </div>
+      ${business ? `<div style="margin-top:${dim.h * 0.06}px;font-family:'Plus Jakarta Sans','${fontFamily}',sans-serif;font-weight:600;color:#fff;opacity:0.85;letter-spacing:2px;font-size:${Math.min(dim.w * 0.035, 44)}px;text-align:center;text-transform:uppercase;">${business}</div>` : ""}
+      <div style="margin-top:${dim.h * 0.04}px;font-family:'Fraunces',serif;font-style:italic;color:#fff;opacity:0.55;font-size:${Math.min(dim.w * 0.022, 28)}px;">BazaarBoard · Typography-perfect fallback</div>
+    </div>
+  </foreignObject>
 </svg>`;
 
   const base64 = Buffer.from(svg, "utf-8").toString("base64");
