@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { LANGUAGES, Language } from "@/lib/languages";
 import { PRESETS } from "@/lib/presets";
@@ -35,6 +36,7 @@ import {
 import { getByokKey } from "@/lib/generate";
 import { trackEvent } from "@/lib/analytics";
 import { StatusIndicator } from "@/components/StatusIndicator";
+import { VoiceModeCallout } from "@/components/VoiceModeCallout";
 
 interface CellState {
   image?: string;
@@ -454,6 +456,7 @@ export default function Home(): React.ReactElement {
   const [showAllScripts, setShowAllScripts] = useState(true);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [voiceCalloutDismissed, setVoiceCalloutDismissed] = useState(true);
   const editorSectionRef = useRef<HTMLElement | null>(null);
   const [printTarget, setPrintTarget] = useState<{
     image: string;
@@ -472,6 +475,15 @@ export default function Home(): React.ReactElement {
       if (seen !== "true") setShowOnboarding(true);
     } catch {
       // localStorage blocked (private mode) — just skip the intro.
+    }
+    try {
+      const dismissed = window.sessionStorage.getItem(
+        "bazaarboard.voiceCalloutDismissed",
+      );
+      setVoiceCalloutDismissed(dismissed === "true");
+    } catch {
+      // sessionStorage blocked — treat as dismissed (safer default).
+      setVoiceCalloutDismissed(true);
     }
   }, []);
 
@@ -548,6 +560,14 @@ export default function Home(): React.ReactElement {
           </p>
           <div className="flex items-center gap-2 flex-wrap ml-auto">
             <ThroughputBar stats={stats} flash={throughputFlash} />
+            <Link
+              href="/voice"
+              aria-label="Switch to voice-first mode"
+              title="Switch to voice mode"
+              className="no-print text-xs px-3 py-2 rounded-full border border-bazaar-tangerine/60 bg-white text-bazaar-ink font-medium hover:bg-bazaar-tangerine hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
+            >
+              🎤 Voice mode
+            </Link>
             <button
               type="button"
               onClick={() => setShowOnboarding(true)}
@@ -582,6 +602,11 @@ export default function Home(): React.ReactElement {
           </div>
         </div>
       </header>
+
+      {/* Voice-mode nudge — appears once the user has tasted the value. */}
+      {stats.count >= 3 && !voiceCalloutDismissed ? (
+        <VoiceModeCallout onDismiss={() => setVoiceCalloutDismissed(true)} />
+      ) : null}
 
       {/* Mode toggle */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">

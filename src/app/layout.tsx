@@ -8,7 +8,7 @@ const SITE_URL = "https://bazaarboard.vercel.app";
 const TITLE =
   "BazaarBoard — Live regional-language marketing assets for kirana & vendors";
 const DESCRIPTION =
-  "Type a product + price in any Indian language, and BazaarBoard renders print-ready posters, WhatsApp Business status, and Google Business Profile cards live — powered by Gemini's Nano Banana 2 Lite for sub-4-second, script-accurate image generation across eight Indic scripts.";
+  "Type or talk in any Indian language. BazaarBoard renders print-ready posters, WhatsApp Business status, and Google Business Profile cards live — powered by Gemini's Nano Banana 2 Lite for sub-4-second, script-accurate image generation across eight Indic scripts.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -10,6 +10,7 @@
  * aria-describedby wiring, focus-visible rings, high contrast text.
  */
 
+import Link from "next/link";
 import { useCallback, useEffect, useId, useRef } from "react";
 
 interface Props {
@@ -141,7 +142,46 @@ export function Onboarding({ onDismiss }: Props): React.ReactElement {
           </p>
         </div>
 
-        <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div className="mt-7">
+          <Link
+            href="/voice"
+            onClick={() => {
+              try {
+                window.localStorage.setItem(
+                  "bazaarboard.onboarded",
+                  "true",
+                );
+              } catch {
+                // localStorage blocked — no-op.
+              }
+            }}
+            aria-label="Switch to voice-first mode"
+            className="group block rounded-2xl border-2 border-bazaar-tangerine/60 bg-bazaar-tangerine/10 hover:bg-bazaar-tangerine/20 p-5 sm:p-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
+          >
+            <div className="flex items-start gap-4">
+              <span
+                aria-hidden="true"
+                className="text-3xl leading-none select-none"
+              >
+                🎤
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display italic text-lg text-bazaar-ink">
+                  Talk to it instead
+                </p>
+                <p className="text-sm text-bazaar-ink/80 leading-relaxed mt-1">
+                  Speak in any Indian language — Hindi, Tamil, Bengali…
+                  BazaarBoard understands.
+                </p>
+                <p className="text-sm font-medium text-bazaar-tangerine mt-2 group-hover:underline underline-offset-4">
+                  Tap to try voice mode →
+                </p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <StepCard
             n="1️⃣"
             title="Pick your shop type"
