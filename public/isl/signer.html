@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Bharat ISL Signer</title>
+<style>
+  html,body { margin:0; padding:0; height:100%; width:100%; background:transparent; overflow:hidden; }
+  #stage { position:fixed; inset:0; }
+  canvas { display:block; }
+  #label {
+    position:fixed;
+    left:0; right:0;
+    bottom:12px;
+    text-align:center;
+    color:#F26B1F;
+    font: italic 700 26px/1.1 "Fraunces", "Times New Roman", Georgia, serif;
+    letter-spacing:0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.55), 0 0 1px rgba(0,0,0,0.9);
+    opacity:0;
+    transition: opacity 220ms ease;
+    pointer-events:none;
+    padding: 0 8px;
+    z-index: 3;
+  }
+  #label.visible { opacity: 1; }
+  #fallback {
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    color:#F26B1F;
+    font: italic 800 42px/1.05 "Fraunces", Georgia, serif;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+    text-align:center;
+    padding: 24px;
+    z-index: 2;
+  }
+  #status {
+    position:fixed; top:8px; left:8px;
+    color:#F26B1F; font:600 11px/1.2 ui-monospace, monospace;
+    opacity:0.65; pointer-events:none; z-index: 4;
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="stage"></div>
+<div id="fallback"></div>
+<div id="label"></div>
+<div id="status"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/",
+    "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.1.2/lib/three-vrm.module.js",
+    "kalidokit": "https://cdn.jsdelivr.net/npm/kalidokit@1.1.5/dist/kalidokit.es.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import * as Kalidokit from 'kalidokit';
+window.Kalidokit = Kalidokit;
+
+// ------- Query params -------
+const params = new URLSearchParams(location.search);
+const wordParam = (params.get('word') || 'MANGO').toUpperCase();
+const loopFlag = params.get('loop') === '1' || params.get('loop') === 'true';
+const debugFlag = params.get('debug') === '1' || params.get('debug') === 'true';
+const worldFlipFlag = params.get('world') === 'flip';
+const wordList = wordParam.split(',').map(s => s.trim()).filter(Boolean);
+const AVATAR_URL = params.get('avatar') || './avatar.vrm';
+
+const statusEl = document.getElementById('status');
+const labelEl  = document.getElementById('label');
+const fallbackEl = document.getElementById('fallback');
+
+// ------- Debug overlay -------
+let debugEl = null;
+if (debugFlag) {
+  debugEl = document.createElement('div');
+  debugEl.id = 'debug';
+  debugEl.style.cssText = [
+    'position:fixed', 'top:32px', 'left:8px',
+    'color:#4ade80',
+    'font:600 10px/1.3 ui-monospace, "Cascadia Mono", monospace',
+    'background:rgba(0,0,0,0.55)',
+    'padding:6px 8px', 'border-radius:4px',
+    'pointer-events:none', 'z-index:5',
+    'white-space:pre',
+    'max-width: 56ch',
+  ].join(';');
+  document.body.appendChild(debugEl);
+}
+function setDebug(lines) {
+  if (!debugEl) return;
+  debugEl.textContent = Array.isArray(lines) ? lines.join('\n') : String(lines);
+}
+
+function setStatus(t) { statusEl.textContent = t; }
+function showLabel(t) { labelEl.textContent = t; labelEl.classList.add('visible'); }
+function hideLabel()  { labelEl.classList.remove('visible'); }
+function showFallback(w) {
+  fallbackEl.style.display = 'flex';
+  fallbackEl.textContent = 'ISL: ' + w;
+}
+function hideFallback() {
+  fallbackEl.style.display = 'none';
+  fallbackEl.textContent = '';
+}
+
+// ------- Three.js setup -------
+const scene = new THREE.Scene();
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, premultipliedAlpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20);
+// Chest-up framing. VRM1 avatar hips ~= y=0.9, head ~= y=1.4.
+camera.position.set(0, 1.25, 1.35);
+camera.lookAt(0, 1.15, 0);
+
+const key = new THREE.DirectionalLight(0xfff2dc, 1.0);
+key.position.set(0.6, 1.8, 1.2);
+scene.add(key);
+const fill = new THREE.AmbientLight(0xfff4e6, 0.55);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xf26b1f, 0.85);
+rim.position.set(-1.2, 1.4, -0.8);
+scene.add(rim);
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, true);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ------- VRM load -------
+let vrm = null;
+async function loadVRM() {
+  const loader = new GLTFLoader();
+  loader.register(parser => new VRMLoaderPlugin(parser));
+  setStatus('loading avatar...');
+  const gltf = await new Promise((res, rej) => loader.load(AVATAR_URL, res, undefined, rej));
+  const v = gltf.userData.vrm;
+  VRMUtils.removeUnnecessaryVertices(gltf.scene);
+  VRMUtils.removeUnnecessaryJoints(gltf.scene);
+  if (v.meta && v.meta.metaVersion === '1') {
+    // VRM1 already Y-up, +Z forward
+  } else {
+    // VRM0 faces -Z by default; rotate 180deg
+    v.scene.rotation.y = Math.PI;
+  }
+  scene.add(v.scene);
+  vrm = v;
+  window.__vrm = v;
+  window.__THREE = THREE;
+  setStatus('');
+}
+
+// ------- Pose JSON -> Holistic-shaped landmarks -------
+// Frame schema:
+//   pose:      [[x,y,0], ... 33]     image-space, 0..1 (real MP output shape)
+//   poseWorld: [[x,y,z], ... 33]     world-space, hip-centered, meters (optional)
+//   leftHand:  [[x,y(,z)], ... 21]   image-space wrist + optional z
+//   rightHand: [[x,y(,z)], ... 21]
+//
+// Kalidokit expects MediaPipe conventions everywhere:
+//   image-space: origin top-left, x=[0,1] right, y=[0,1] DOWN
+//   world-space: hip-centered meters, +x right, +y DOWN, +z toward camera
+function coord(p) {
+  const x = p[0] ?? 0, y = p[1] ?? 0, z = p[2] ?? 0;
+  const missing = (x === 0 && y === 0);
+  return { x, y, z, missing };
+}
+
+function toMPLandmark(p, isPose) {
+  const c = coord(p);
+  return {
+    x: c.x,
+    y: c.y,
+    z: c.z,
+    visibility: isPose ? (c.missing ? 0.05 : 0.98) : undefined,
+  };
+}
+
+// Fallback for legacy 2D-only files (no `poseWorld`): synthesize a plausible
+// world-space frame from the image-space landmarks. Kalidokit's world input
+// is MediaPipe-convention: hip-centered, meters, y-DOWN, +z toward camera.
+function projectImageToWorld(pose2d) {
+  const lh = coord(pose2d[23]), rh = coord(pose2d[24]);
+  const hipsMissing = lh.missing || rh.missing;
+  const cx = hipsMissing ? 0.5 : (lh.x + rh.x) * 0.5;
+  const cy = hipsMissing ? 0.62 : (lh.y + rh.y) * 0.5;
+  const ls = coord(pose2d[11]), rs = coord(pose2d[12]);
+  const shoulderMissing = ls.missing || rs.missing;
+  const shoulderW = shoulderMissing ? 0.20 : Math.max(0.08, Math.abs(rs.x - ls.x));
+  // Real human shoulder-to-shoulder ~= 0.36 m -> pixel-to-meter scale.
+  const scale = 0.36 / shoulderW;
+  return pose2d.map(p => {
+    const c = coord(p);
+    if (c.missing) return { x: 0, y: 0, z: 0, visibility: 0.05 };
+    return {
+      // Image x is subject-right, mirrored on screen when subject faces cam.
+      // MediaPipe world +x matches image +x, so keep sign.
+      x: (c.x - cx) * scale,
+      // y-DOWN: hip center is 0, above hips is negative.
+      y: (c.y - cy) * scale,
+      z: c.z || 0,
+      visibility: 0.98,
+    };
+  });
+}
+
+function negateZ(lms) {
+  return lms.map(l => ({
+    x: l.x, y: l.y, z: -l.z,
+    visibility: l.visibility,
+  }));
+}
+
+function toHolistic(frame, opts = {}) {
+  const pose2d_raw = frame.pose || [];
+  const poseW_raw  = frame.poseWorld;
+  const pose2d = pose2d_raw.map(p => toMPLandmark(p, true));
+
+  let pose3d;
+  if (poseW_raw && poseW_raw.length === pose2d_raw.length) {
+    pose3d = poseW_raw.map(p => {
+      const c = coord(p);
+      const missing = (c.x === 0 && c.y === 0 && c.z === 0);
+      return { x: c.x, y: c.y, z: c.z, visibility: missing ? 0.05 : 0.98 };
+    });
+  } else {
+    pose3d = projectImageToWorld(pose2d_raw);
+  }
+  if (opts.negateZ) pose3d = negateZ(pose3d);
+
+  const lh_raw = frame.leftHand || [];
+  const rh_raw = frame.rightHand || [];
+  const lh = lh_raw.map(p => toMPLandmark(p, false));
+  const rh = rh_raw.map(p => toMPLandmark(p, false));
+  const nonZero = (arr) => arr.some(p => (p[0] ?? 0) !== 0 || (p[1] ?? 0) !== 0);
+  const hasLeft  = nonZero(lh_raw);
+  const hasRight = nonZero(rh_raw);
+  return {
+    pose3d,
+    pose2d,
+    leftHandLandmarks:  hasLeft  ? lh : null,
+    rightHandLandmarks: hasRight ? rh : null,
+  };
+}
+
+// ------- Rig application -------
+// Kalidokit returns Euler XYZ radians per joint in MediaPipe axis convention:
+//   +x subject-right, +y DOWN, +z toward camera
+// VRM (three.js) is +Y UP, +Z FORWARD, right-handed.
+// To bridge: negate `y` and `z` on every rotation applied to the rig.
+// (Standard fix used in kalidokit's own vrm.html demo.)
+const eulerCache = new WeakMap();
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+function dampBoneRaw(bone, tx, ty, tz, alpha) {
+  if (!bone) return;
+  const cur = eulerCache.get(bone) || { x: bone.rotation.x, y: bone.rotation.y, z: bone.rotation.z };
+  const nx = cur.x + (tx - cur.x) * alpha;
+  const ny = cur.y + (ty - cur.y) * alpha;
+  const nz = cur.z + (tz - cur.z) * alpha;
+  bone.rotation.set(nx, ny, nz);
+  eulerCache.set(bone, { x: nx, y: ny, z: nz });
+}
+
+// Apply a Kalidokit Euler {x,y,z} onto a VRM bone, flipping to VRM axes.
+function dampBoneVRM(bone, target, alpha = 0.35) {
+  if (!bone || !target) return;
+  dampBoneRaw(bone, target.x || 0, -(target.y || 0), -(target.z || 0), alpha);
+}
+
+// Finger bones: Kalidokit only populates `.z` (curl). We still flip y/z for
+// consistency (curl is on z which stays negated).
+function dampFingerBone(bone, target, alpha = 0.4) {
+  if (!bone || !target) return;
+  dampBoneRaw(bone, target.x || 0, -(target.y || 0), -(target.z || 0), alpha);
+}
+
+function getBone(name) {
+  return vrm && vrm.humanoid ? vrm.humanoid.getNormalizedBoneNode(name) : null;
+}
+
+// VRM 1.0 finger bone names — 15 per hand, 30 total.
+// Thumb has Metacarpal + Proximal + Distal (no Intermediate; the CMC joint is
+// exposed instead). Kalidokit's Hand.solve emits ThumbProximal / Intermediate
+// / Distal — we retarget Proximal->Metacarpal, Intermediate->Proximal,
+// Distal->Distal.
+const FINGER_MAP = [
+  // [kalidokit finger, vrm segment, tip damping alpha, non-tip damping alpha]
+  { rig: 'Thumb',  vrm: 'Thumb',  thumb: true  },
+  { rig: 'Index',  vrm: 'Index',  thumb: false },
+  { rig: 'Middle', vrm: 'Middle', thumb: false },
+  { rig: 'Ring',   vrm: 'Ring',   thumb: false },
+  { rig: 'Little', vrm: 'Little', thumb: false },
+];
+
+function applyHandFingers(handRig, side /* 'Left' | 'Right' */) {
+  if (!handRig) return;
+  const sideLower = side.toLowerCase();
+  for (const cfg of FINGER_MAP) {
+    const p = handRig[side + cfg.rig + 'Proximal'];
+    const i = handRig[side + cfg.rig + 'Intermediate'];
+    const d = handRig[side + cfg.rig + 'Distal'];
+    if (cfg.thumb) {
+      // Thumb: Kalidokit Proximal -> VRM Metacarpal
+      //        Kalidokit Intermediate -> VRM Proximal
+      //        Kalidokit Distal -> VRM Distal
+      dampFingerBone(getBone(sideLower + 'ThumbMetacarpal'), p, 0.4);
+      dampFingerBone(getBone(sideLower + 'ThumbProximal'),   i, 0.4);
+      dampFingerBone(getBone(sideLower + 'ThumbDistal'),     d, 0.5);
+    } else {
+      dampFingerBone(getBone(sideLower + cfg.vrm + 'Proximal'),     p, 0.4);
+      dampFingerBone(getBone(sideLower + cfg.vrm + 'Intermediate'), i, 0.4);
+      dampFingerBone(getBone(sideLower + cfg.vrm + 'Distal'),       d, 0.5);
+    }
+  }
+}
+
+// Track last-applied rotations for the debug panel (in VRM-space, i.e. after
+// axis flip).
+const lastApplied = {
+  leftUpperArm: null, rightUpperArm: null,
+  leftLowerArm: null, rightLowerArm: null,
+  leftHand: null,     rightHand: null,
+  leftIndexProximal: null, rightIndexProximal: null,
+};
+
+function applyRig(riggedPose, leftHandRig, rightHandRig) {
+  if (!vrm) return;
+
+  if (riggedPose) {
+    // Hips + spine come from Kalidokit's world-space solve. Kalidokit zeroes
+    // Hips.rotation.x deliberately (comment in source: "temp fix for
+    // inaccurate X axis"), so pitch stays 0.
+    if (riggedPose.Hips && riggedPose.Hips.rotation) {
+      dampBoneVRM(getBone('hips'), riggedPose.Hips.rotation, 0.25);
+    }
+    if (riggedPose.Spine) {
+      dampBoneVRM(getBone('spine'), riggedPose.Spine, 0.30);
+      // Chest / upperChest: attenuated echo of spine.
+      dampBoneVRM(getBone('chest'), {
+        x: riggedPose.Spine.x * 0.5,
+        y: riggedPose.Spine.y * 0.5,
+        z: riggedPose.Spine.z * 0.5,
+      }, 0.25);
+      dampBoneVRM(getBone('upperChest'), {
+        x: riggedPose.Spine.x * 0.3,
+        y: riggedPose.Spine.y * 0.3,
+        z: riggedPose.Spine.z * 0.3,
+      }, 0.20);
+      // Neck / head follow spine mildly (Kalidokit face solver would drive
+      // them properly, but we have no face landmarks in the ISL pose JSON).
+      dampBoneVRM(getBone('neck'), {
+        x: riggedPose.Spine.x * 0.2,
+        y: riggedPose.Spine.y * 0.2,
+        z: riggedPose.Spine.z * 0.2,
+      }, 0.20);
+    }
+
+    // Arms.
+    dampBoneVRM(getBone('leftShoulder'),  { x: 0, y: 0, z: 0 }, 0.20);
+    dampBoneVRM(getBone('rightShoulder'), { x: 0, y: 0, z: 0 }, 0.20);
+    dampBoneVRM(getBone('leftUpperArm'),  riggedPose.LeftUpperArm,  0.35);
+    dampBoneVRM(getBone('leftLowerArm'),  riggedPose.LeftLowerArm,  0.35);
+    dampBoneVRM(getBone('leftHand'),      riggedPose.LeftHand,      0.35);
+    dampBoneVRM(getBone('rightUpperArm'), riggedPose.RightUpperArm, 0.35);
+    dampBoneVRM(getBone('rightLowerArm'), riggedPose.RightLowerArm, 0.35);
+    dampBoneVRM(getBone('rightHand'),     riggedPose.RightHand,     0.35);
+
+    lastApplied.leftUpperArm  = riggedPose.LeftUpperArm  || null;
+    lastApplied.rightUpperArm = riggedPose.RightUpperArm || null;
+    lastApplied.leftLowerArm  = riggedPose.LeftLowerArm  || null;
+    lastApplied.rightLowerArm = riggedPose.RightLowerArm || null;
+    lastApplied.leftHand      = riggedPose.LeftHand      || null;
+    lastApplied.rightHand     = riggedPose.RightHand     || null;
+  }
+
+  applyHandFingers(leftHandRig,  'Left');
+  applyHandFingers(rightHandRig, 'Right');
+
+  lastApplied.leftIndexProximal  = leftHandRig  ? leftHandRig.LeftIndexProximal  || null : null;
+  lastApplied.rightIndexProximal = rightHandRig ? rightHandRig.RightIndexProximal || null : null;
+}
+
+// ------- Playback -------
+async function fetchPose(word) {
+  try {
+    const r = await fetch(`./poses/${encodeURIComponent(word)}.json`, { cache: 'no-cache' });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+function interpolateFrame(a, b, t) {
+  const mixN = (u, v) => {
+    const ux = u[0] ?? 0, uy = u[1] ?? 0, uz = u[2] ?? 0;
+    const vx = v[0] ?? 0, vy = v[1] ?? 0, vz = v[2] ?? 0;
+    const uMissing = (ux === 0 && uy === 0);
+    const vMissing = (vx === 0 && vy === 0);
+    if (uMissing && vMissing) return u.length >= 3 ? [0, 0, 0] : [0, 0];
+    if (uMissing) return v.slice();
+    if (vMissing) return u.slice();
+    const has3 = u.length >= 3 || v.length >= 3;
+    if (has3) return [ux + (vx - ux) * t, uy + (vy - uy) * t, uz + (vz - uz) * t];
+    return [ux + (vx - ux) * t, uy + (vy - uy) * t];
+  };
+  const mixArr = (A, B) => A.map((p, i) => mixN(p, B[i]));
+  const out = {
+    pose:      mixArr(a.pose,      b.pose),
+    leftHand:  mixArr(a.leftHand,  b.leftHand),
+    rightHand: mixArr(a.rightHand, b.rightHand),
+  };
+  if (a.poseWorld && b.poseWorld) {
+    out.poseWorld = mixArr(a.poseWorld, b.poseWorld);
+  }
+  return out;
+}
+
+function solveFrame(frame, frameIndex) {
+  const hasPoseWorld = !!(frame.poseWorld && frame.poseWorld.length);
+  const fake = toHolistic(frame, { negateZ: worldFlipFlag });
+  let riggedPose = null, riggedLH = null, riggedRH = null;
+  try {
+    riggedPose = Kalidokit.Pose.solve(
+      fake.pose3d,
+      fake.pose2d,
+      {
+        runtime: 'mediapipe',
+        video: null,
+        imageSize: { width: 640, height: 480 },
+        enableLegs: false,
+      }
+    );
+  } catch (e) {
+    riggedPose = null;
+  }
+  if (fake.leftHandLandmarks) {
+    try { riggedLH = Kalidokit.Hand.solve(fake.leftHandLandmarks, 'Left'); }
+    catch (e) { riggedLH = null; }
+  }
+  if (fake.rightHandLandmarks) {
+    try { riggedRH = Kalidokit.Hand.solve(fake.rightHandLandmarks, 'Right'); }
+    catch (e) { riggedRH = null; }
+  }
+  applyRig(riggedPose, riggedLH, riggedRH);
+
+  if (debugFlag) {
+    // Kalidokit outputs radians; display degrees (post axis-flip).
+    const rad = 180 / Math.PI;
+    const deg = (v) => (v == null ? '   .' : (v >= 0 ? ' ' : '') + (v * rad).toFixed(0).padStart(3));
+    const fmtVRM = (label, r) => {
+      if (!r) return `${label} [   .,   .,   .]`;
+      // VRM-space: x, -y, -z after flip
+      return `${label} [${deg(r.x)},${deg(-r.y)},${deg(-r.z)}]`;
+    };
+    const fmtRaw = (label, r) => {
+      if (!r) return `${label} [   .,   .,   .]`;
+      return `${label} [${deg(r.x)},${deg(r.y)},${deg(r.z)}]`;
+    };
+    setDebug([
+      `frame ${frameIndex ?? '?'}  poseWorld=${hasPoseWorld ? 'yes' : 'no (proj)'}  world=${worldFlipFlag ? 'flip' : 'std'}`,
+      `pose=${!!riggedPose}  L.hand=${!!riggedLH}  R.hand=${!!riggedRH}`,
+      `--- VRM-space (applied) deg ---`,
+      fmtVRM('L.UpArm', lastApplied.leftUpperArm),
+      fmtVRM('R.UpArm', lastApplied.rightUpperArm),
+      fmtVRM('L.LoArm', lastApplied.leftLowerArm),
+      fmtVRM('R.LoArm', lastApplied.rightLowerArm),
+      fmtVRM('L.Hand ', lastApplied.leftHand),
+      fmtVRM('R.Hand ', lastApplied.rightHand),
+      `--- finger (raw kalidokit deg) ---`,
+      fmtRaw('L.IdxPx', lastApplied.leftIndexProximal),
+      fmtRaw('R.IdxPx', lastApplied.rightIndexProximal),
+    ]);
+  }
+}
+
+let running = false;
+let playToken = 0;
+async function playWord(word, isLastOverall) {
+  const myToken = ++playToken;
+  const seq = await fetchPose(word);
+  hideFallback();
+  if (myToken !== playToken) return;
+  if (!seq || !seq.frames || !seq.frames.length) {
+    showFallback(word);
+    showLabel(word);
+    await new Promise(r => setTimeout(r, 900));
+    hideFallback();
+    return;
+  }
+  showLabel(seq.gloss || word);
+  const fps = seq.fps || 15;
+  const frameMs = 1000 / fps;
+  const total = seq.frames.length;
+  const durMs = seq.durationMs || total * frameMs;
+
+  try {
+    const msg = { type: 'bharat-isl:word', word: seq.gloss || word };
+    window.postMessage(msg, '*');
+    if (window.parent && window.parent !== window) window.parent.postMessage(msg, '*');
+  } catch (e) {}
+
+  const start = performance.now();
+  await new Promise(resolve => {
+    function tick(now) {
+      if (myToken !== playToken) return resolve();
+      const elapsed = now - start;
+      if (elapsed >= durMs) {
+        solveFrame(seq.frames[total - 1], total - 1);
+        renderer.render(scene, camera);
+        return resolve();
+      }
+      const fpos = elapsed / frameMs;
+      const i0 = Math.min(Math.floor(fpos), total - 1);
+      const i1 = Math.min(i0 + 1, total - 1);
+      const t = Math.max(0, Math.min(1, fpos - i0));
+      const f = (i0 === i1) ? seq.frames[i0] : interpolateFrame(seq.frames[i0], seq.frames[i1], t);
+      solveFrame(f, i0);
+      if (vrm) vrm.update(1/60);
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+async function playChain() {
+  if (running) { playToken++; }
+  running = true;
+  do {
+    for (let i = 0; i < wordList.length; i++) {
+      await playWord(wordList[i], i === wordList.length - 1);
+    }
+  } while (loopFlag);
+  running = false;
+  hideLabel();
+  try {
+    window.postMessage({ type: 'bharat-isl:done', words: wordList }, '*');
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'bharat-isl:done', words: wordList }, '*');
+    }
+    if (window.BharatISL && typeof window.BharatISL.onDone === 'function') {
+      window.BharatISL.onDone(JSON.stringify(wordList));
+    }
+  } catch (e) {}
+}
+
+function idleRender() {
+  if (vrm) vrm.update(1/60);
+  renderer.render(scene, camera);
+  requestAnimationFrame(idleRender);
+}
+
+(async () => {
+  try {
+    await loadVRM();
+  } catch (e) {
+    console.error('avatar load failed', e);
+    setStatus('avatar failed - text fallback');
+    for (const w of wordList) {
+      showFallback(w);
+      showLabel(w);
+      await new Promise(r => setTimeout(r, 900));
+    }
+    hideFallback();
+    hideLabel();
+    try { window.postMessage({ type: 'bharat-isl:done', words: wordList }, '*'); } catch(e){}
+    return;
+  }
+  idleRender();
+  playChain();
+})();
+</script>
+</body>
+</html>

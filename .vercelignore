@@ -6,3 +6,10 @@ coverage
 *.log
 .env
 .env.local
+isl/android/
+isl/tools/venv/
+isl/tools/downloads/
+isl/tools/__pycache__/
+brag-output-2026-07-11/*/frames/
+brag-output-2026-07-11/*/composition/
+android/
