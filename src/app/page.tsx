@@ -37,6 +37,10 @@ import { getByokKey } from "@/lib/generate";
 import { trackEvent } from "@/lib/analytics";
 import { StatusIndicator } from "@/components/StatusIndicator";
 import { VoiceModeCallout } from "@/components/VoiceModeCallout";
+import {
+  GlobalVoiceOrb,
+  type GlobalVoiceOrbBrief,
+} from "@/components/GlobalVoiceOrb";
 
 interface CellState {
   image?: string;
@@ -99,6 +103,18 @@ export default function Home(): React.ReactElement {
 
   // Rendered cells (shared between modes; single mode uses productIdx=0)
   const [cells, setCells] = useState<Record<string, CellState>>({});
+
+  // Voice orb: nonce we can bump to force a re-render, and an undo stack
+  // so voice-triggered edits (via onToolCall) can be reverted with
+  // "say undo". Keep this tiny — 20 entries max, LIFO.
+  const [regenerateNonce, setRegenerateNonce] = useState(0);
+  const undoStackRef = useRef<Array<{ action: string; revert: () => void }>>(
+    [],
+  );
+  const pushUndo = useCallback((action: string, revert: () => void): void => {
+    undoStackRef.current.push({ action, revert });
+    if (undoStackRef.current.length > 20) undoStackRef.current.shift();
+  }, []);
 
   // Throughput
   const [stats, setStats] = useState<ThroughputStats>({
@@ -215,7 +231,7 @@ export default function Home(): React.ReactElement {
       void regenerateSingle(nonce);
     }, 400);
     return () => clearTimeout(timer);
-  }, [mode, regenerateSingle]);
+  }, [mode, regenerateSingle, regenerateNonce]);
 
   /* --------------------------- BULK MODE ------------------------------ */
 
@@ -546,6 +562,134 @@ export default function Home(): React.ReactElement {
   const activeProducts = mode === "bulk" ? bulkProducts : singleProducts;
   const activeSurfaces: SurfaceKind[] =
     mode === "bulk" ? Array.from(bulkSurfaces) : [selectedSurface];
+
+  // Voice-orb brief + tool dispatcher. Each tool maps to an existing
+  // state setter; we push a revert onto the undo stack for edits so
+  // the user can say "undo" to walk back.
+  const currentBrief: GlobalVoiceOrbBrief = {
+    productName,
+    price,
+    businessName,
+    brandColor,
+    selectedLangs,
+    selectedSurface,
+    mode,
+  };
+
+  const onToolCall = useCallback(
+    (name: string, args: Record<string, unknown>): void => {
+      switch (name) {
+        case "set_slot": {
+          const field = String(args.field ?? "");
+          const value = String(args.value ?? "");
+          if (field === "productName") {
+            const prev = productName;
+            setProductName(value);
+            pushUndo("productName", () => setProductName(prev));
+          } else if (field === "price") {
+            const prev = price;
+            setPrice(value);
+            pushUndo("price", () => setPrice(prev));
+          } else if (field === "businessName") {
+            const prev = businessName;
+            setBusinessName(value);
+            pushUndo("businessName", () => setBusinessName(prev));
+          } else if (field === "brandColor") {
+            const prev = brandColor;
+            setBrandColor(value);
+            pushUndo("brandColor", () => setBrandColor(prev));
+          }
+          return;
+        }
+        case "set_language": {
+          const code = String(args.code ?? "");
+          if (!code) return;
+          const prev = selectedLangs;
+          setSelectedLangs((s) => (s.includes(code) ? s : [...s, code]));
+          pushUndo("language", () => setSelectedLangs(prev));
+          return;
+        }
+        case "set_surface": {
+          const kind = String(args.kind ?? "") as SurfaceKind;
+          const prev = selectedSurface;
+          setSelectedSurface(kind);
+          pushUndo("surface", () => setSelectedSurface(prev));
+          return;
+        }
+        case "set_preset": {
+          const presetId = String(args.presetId ?? "");
+          const prevPreset = activePresetId;
+          const prevProduct = productName;
+          const prevPrice = price;
+          const prevBusiness = businessName;
+          const prevColor = brandColor;
+          const prevBulk = bulkText;
+          applyPreset(presetId);
+          pushUndo("preset", () => {
+            setActivePresetId(prevPreset);
+            setProductName(prevProduct);
+            setPrice(prevPrice);
+            setBusinessName(prevBusiness);
+            setBrandColor(prevColor);
+            setBulkText(prevBulk);
+          });
+          return;
+        }
+        case "regenerate": {
+          // Bump the nonce so the debounced effect re-fires.
+          setRegenerateNonce((n) => n + 1);
+          return;
+        }
+        case "export_zip": {
+          if (mode === "bulk") {
+            void downloadBulkZip();
+          } else {
+            // Fall back: download whatever single-mode cells rendered.
+            for (const lang of langObjects) {
+              const key = cellKey(lang.code, selectedSurface, 0);
+              const cell = cells[key];
+              if (!cell?.image) continue;
+              const safe = productName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .slice(0, 30);
+              void downloadImage(
+                cell.image,
+                cell.mimeType ?? "image/png",
+                `${safe}--${lang.code}--${selectedSurface}.png`,
+              );
+            }
+          }
+          return;
+        }
+        case "undo": {
+          const last = undoStackRef.current.pop();
+          if (last) last.revert();
+          return;
+        }
+        default:
+          // Unknown tool — ignore silently. The orb still surfaces a
+          // toast so the user sees SOMETHING happened.
+          return;
+      }
+    },
+    [
+      productName,
+      price,
+      businessName,
+      brandColor,
+      selectedLangs,
+      selectedSurface,
+      activePresetId,
+      bulkText,
+      applyPreset,
+      pushUndo,
+      mode,
+      downloadBulkZip,
+      langObjects,
+      cells,
+    ],
+  );
 
   return (
     <main className="min-h-screen">
@@ -1120,6 +1264,8 @@ export default function Home(): React.ReactElement {
       ) : null}
 
       {showOnboarding ? <Onboarding onDismiss={dismissOnboarding} /> : null}
+
+      <GlobalVoiceOrb currentBrief={currentBrief} onToolCall={onToolCall} />
     </main>
   );
 }

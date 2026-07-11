@@ -276,7 +276,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const prompt = buildPrompt(body);
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_MODEL}:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_MODEL}:generateContent`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
@@ -285,7 +285,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const upstream = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-goog-api-key": apiKey,
+      },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {

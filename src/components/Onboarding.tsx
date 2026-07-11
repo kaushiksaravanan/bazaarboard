@@ -221,6 +221,9 @@ export function Onboarding({ onDismiss }: Props): React.ReactElement {
           No account. No login. Free trial. Print-ready A4 / 1080×1920 /
           1080×1080.
         </p>
+        <p className="mt-2 text-xs text-bazaar-ink/70 leading-relaxed">
+          Or tap the mic anywhere to change things by voice.
+        </p>
       </div>
     </div>
   );

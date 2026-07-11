@@ -76,13 +76,18 @@ function getSessionId(): string {
 }
 
 const SENSITIVE_KEY_RE = /(key|token|secret|auth|password|credential)/i;
+// Boolean-flag convention (has_key, is_authenticated, ...) is safe by design —
+// callers use these to REPORT credential state without sending the credential.
+const FLAG_PREFIX_RE = /^(has|is)_/i;
 
 function sanitizeProps(props: EventProps | undefined): EventProps {
   if (!props) return {};
   const out: EventProps = {};
   for (const [k, v] of Object.entries(props)) {
-    // Belt-and-suspenders: strip any prop whose key looks credential-like.
-    if (SENSITIVE_KEY_RE.test(k)) continue;
+    // Belt-and-suspenders: strip any prop whose key looks credential-like,
+    // EXCEPT boolean flags like `has_key` / `is_authenticated` that only
+    // report presence, not the credential itself.
+    if (SENSITIVE_KEY_RE.test(k) && !FLAG_PREFIX_RE.test(k)) continue;
     // Also strip anything that looks like a Gemini/Google API key value.
     if (typeof v === "string" && /^AIza[0-9A-Za-z_-]{20,}$/.test(v)) continue;
     out[k] = v;
