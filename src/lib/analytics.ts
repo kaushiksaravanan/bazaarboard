@@ -90,6 +90,18 @@ function sanitizeProps(props: EventProps | undefined): EventProps {
   return out;
 }
 
+async function forwardToVercel(name: string, props: EventProps): Promise<void> {
+  try {
+    const mod = await import("@vercel/analytics");
+    // Vercel's track() accepts string | number | boolean | null values, which
+    // matches EventProps. The sanitizer has already stripped credential-like
+    // keys and Gemini API-key-shaped values.
+    mod.track(name, props);
+  } catch {
+    // Package missing, blocked, or not in a Vercel context — silently ignore.
+  }
+}
+
 function wireFlushers(): void {
   if (!isBrowser() || state.wired) return;
   state.wired = true;
@@ -124,13 +136,20 @@ export function trackEvent(name: string, props?: EventProps): void {
   wireFlushers();
   ensureTimer();
 
+  const cleanProps = sanitizeProps(props);
+
   state.queue.push({
     name,
-    props: sanitizeProps(props),
+    props: cleanProps,
     ts: Date.now(),
     sessionId: getSessionId(),
     url: window.location.pathname,
   });
+
+  // Also forward the (sanitized) event to Vercel Analytics if available.
+  // Guarded so it fails gracefully outside a Vercel context (no dashboard,
+  // ad-blocked, offline dev, etc.). Runs in parallel with the batched POST.
+  void forwardToVercel(name, cleanProps);
 
   // Soft cap to avoid unbounded growth if the endpoint is unreachable.
   if (state.queue.length > 500) {

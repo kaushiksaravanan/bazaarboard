@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,600;1,9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Tamil:wght@500;600&family=Noto+Sans+Bengali:wght@500;600&family=Noto+Sans+Telugu:wght@500;600&family=Noto+Sans+Kannada:wght@500;600&family=Noto+Sans+Malayalam:wght@500;600&family=Noto+Sans+Gurmukhi:wght@500;600&family=Noto+Sans+Gujarati:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {
@@ -12,61 +18,952 @@
       }
       html,
       body {
-        margin: 0;
         width: 1080px;
         height: 1080px;
         overflow: hidden;
-        background: #000;
+        background: #f5efe3;
       }
       body {
-        font-family: "Inter", sans-serif;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: #1f1409;
       }
-      code,
-      pre,
-      .monospace {
-        font-family: "JetBrains Mono", monospace;
+      .font-display {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 500;
+      }
+      .font-display-b {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 600;
+      }
+      .font-display-h {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 700;
+      }
+      .font-ui {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      .f-dev {
+        font-family: "Noto Sans Devanagari", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tam {
+        font-family: "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-ben {
+        font-family: "Noto Sans Bengali", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tel {
+        font-family: "Noto Sans Telugu", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-kan {
+        font-family: "Noto Sans Kannada", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-mal {
+        font-family: "Noto Sans Malayalam", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-gur {
+        font-family: "Noto Sans Gurmukhi", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-guj {
+        font-family: "Noto Sans Gujarati", "Plus Jakarta Sans", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      .bg-canvas {
+        position: absolute;
+        inset: 0;
+        background: #f5efe3;
+        z-index: 0;
+      }
+      .vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0) 55%,
+          rgba(242, 107, 31, 0.05) 100%
+        );
+        z-index: 1;
+      }
+
+      /* Recurring 3x3 grid geometry (Scenes 1 & 6) */
+      .grid-3x3 {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 888px;
+        height: 888px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 24px;
+      }
+      .cell {
+        background: #fbf6ec;
+        border: 1px solid rgba(31, 20, 9, 0.08);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        color: #1f1409;
+        line-height: 1.1;
+        opacity: 0;
+        box-shadow: 0 2px 20px rgba(31, 20, 9, 0.03);
+      }
+      .cell-center {
+        background: #f5efe3;
+        border: 1px solid rgba(242, 107, 31, 0.35);
+        opacity: 1;
+      }
+      .cell-native {
+        font-size: 52px;
+        font-weight: 500;
+      }
+      .cell-native.small {
+        font-size: 44px;
+      }
+
+      /* Scene 1 */
+      .scene-1 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s1-logomark {
+        font-size: 220px;
+        color: #f26b1f;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      /* Scene 2 */
+      .scene-2 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s2-glow {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        width: 620px;
+        height: 620px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.35) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(90px);
+        opacity: 0;
+      }
+      .s2-wordmark {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        font-size: 140px;
+        font-weight: 600;
+        color: #1f1409;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        line-height: 1;
+        opacity: 0;
+      }
+      .s2-underline {
+        position: absolute;
+        left: 50%;
+        top: 54%;
+        width: 560px;
+        height: 2px;
+        background: #f26b1f;
+        transform: translateX(-50%) scaleX(0);
+        transform-origin: left center;
+      }
+      .s2-tagline {
+        position: absolute;
+        left: 50%;
+        top: 62%;
+        transform: translateX(-50%);
+        font-size: 30px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.78);
+        text-align: center;
+        line-height: 1.35;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* Scene 3 */
+      .scene-3 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s3-input-wrap {
+        position: absolute;
+        left: 50%;
+        top: 90px;
+        transform: translateX(-50%);
+        width: 880px;
+        display: flex;
+        justify-content: center;
+      }
+      .s3-input {
+        background: #ffffff;
+        border: 1px solid rgba(31, 20, 9, 0.18);
+        border-radius: 999px;
+        padding: 18px 34px;
+        font-size: 32px;
+        font-weight: 500;
+        color: #1f1409;
+        white-space: nowrap;
+        box-shadow: 0 4px 30px rgba(31, 20, 9, 0.04);
+      }
+      .s3-input .caret {
+        display: inline-block;
+        width: 2px;
+        height: 32px;
+        background: #f26b1f;
+        vertical-align: middle;
+        margin-left: 3px;
+        transform: translateY(-2px);
+      }
+      .s3-grid {
+        position: absolute;
+        left: 50%;
+        top: 250px;
+        transform: translateX(-50%);
+        width: 880px;
+        height: 740px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .s3-tile {
+        background: #fbf6ec;
+        border-top: 2px solid #f26b1f;
+        border-radius: 8px;
+        padding: 18px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        opacity: 0;
+        box-shadow: 0 2px 20px rgba(31, 20, 9, 0.04);
+      }
+      .s3-tile-center {
+        background: #f5efe3;
+        border-top: 2px solid #1f1409;
+      }
+      .s3-tile-phrase {
+        font-size: 30px;
+        font-weight: 500;
+        color: #1f1409;
+        line-height: 1.15;
+      }
+      .s3-tile-phrase.latin {
+        font-size: 22px;
+      }
+      .s3-tile-price {
+        font-size: 24px;
+        color: #f26b1f;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .s3-chip {
+        position: absolute;
+        right: 100px;
+        bottom: 30px;
+        background: rgba(242, 107, 31, 0.12);
+        border: 1px solid rgba(242, 107, 31, 0.4);
+        color: #f26b1f;
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        opacity: 0;
+      }
+
+      /* Scene 4 */
+      .scene-4 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s4-tile {
+        position: absolute;
+        top: 190px;
+        width: 440px;
+        height: 540px;
+        border-radius: 20px;
+        background: #fbf6ec;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 30px;
+        opacity: 0;
+      }
+      .s4-left {
+        left: 60px;
+        border: 1px solid rgba(184, 74, 44, 0.6);
+      }
+      .s4-right {
+        right: 60px;
+        border: 1px solid rgba(242, 107, 31, 0.6);
+      }
+      .s4-eyebrow {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 40px;
+      }
+      .s4-eyebrow-canva {
+        color: rgba(31, 20, 9, 0.6);
+      }
+      .s4-eyebrow-bb {
+        color: #f26b1f;
+      }
+      .s4-glyph {
+        font-size: 68px;
+        color: #1f1409;
+        line-height: 1.15;
+        text-align: center;
+      }
+      .s4-broken-tag {
+        margin-top: 30px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #b84a2c;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0;
+      }
+      .s4-correct-tag {
+        margin-top: 30px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #f26b1f;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .s4-punch {
+        position: absolute;
+        left: 50%;
+        bottom: 90px;
+        transform: translateX(-50%);
+        font-size: 46px;
+        color: #1f1409;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        letter-spacing: -0.01em;
+      }
+
+      /* Scene 5 */
+      .scene-5 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s5-stack {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 940px;
+      }
+      .s5-glow {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        width: 600px;
+        height: 500px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.28) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(100px);
+        opacity: 0;
+      }
+      .s5-number {
+        font-size: 240px;
+        font-weight: 700;
+        color: #f26b1f;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        opacity: 0;
+      }
+      .s5-label {
+        font-size: 44px;
+        font-weight: 500;
+        color: #1f1409;
+        letter-spacing: 0.04em;
+        margin-top: 24px;
+        opacity: 0;
+      }
+      .s5-subcopy {
+        font-size: 22px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.72);
+        letter-spacing: 0.02em;
+        margin-top: 40px;
+        opacity: 0;
+      }
+
+      /* Scene 6 */
+      .scene-6 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s6-impact {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 940px;
+      }
+      .s6-line {
+        font-size: 56px;
+        font-weight: 600;
+        color: #1f1409;
+        line-height: 1.35;
+        opacity: 0;
+        letter-spacing: -0.01em;
+      }
+      .s6-grid-wrap {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+      .s6-cta {
+        font-size: 26px;
+        font-weight: 600;
+        color: #f26b1f;
+        letter-spacing: 0.02em;
+        line-height: 1.1;
+      }
+      .s6-cta-underline {
+        display: block;
+        margin: 10px auto 0;
+        width: 220px;
+        height: 2px;
+        background: #f26b1f;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+      .s6-kicker {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        font-size: 24px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.7);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        opacity: 0;
       }
     </style>
-  
-<script>
-window.__tailwindReady=new Promise(function(resolve){
-var loaded=document.readyState==="complete";
-var resolved=false;
-var observer;
-function readTailwindCss(){var styles=document.querySelectorAll("style");for(var i=styles.length-1;i>=0;i--){var text=styles[i].textContent||"";if(text.indexOf("tailwindcss v")!==-1)return text;}return "";}
-function finish(){if(resolved||!loaded||!readTailwindCss())return;resolved=true;if(observer)observer.disconnect();resolve(true);}
-observer=new MutationObserver(finish);
-observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
-if(loaded){finish();}else{window.addEventListener("load",function(){loaded=true;finish();},{once:true});}
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js" integrity="sha384-v5YF9xS+gLRWdvrQ0u/WRbCkjSIH0NjHIPe8tBL1ZRrmI7PiSH6LLdzs0aAIMCuh" crossorigin="anonymous"></script>
-</head>
+  </head>
   <body>
     <div
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
+      data-duration="22"
       data-width="1080"
       data-height="1080"
     >
-      
-      
+      <div class="bg-canvas"></div>
+      <div class="vignette"></div>
 
-      <!--
-        Add your clips here. Example:
-        <div id="title" class="clip" data-start="0" data-duration="5" data-track-index="1"
-             style="font-size: 64px; color: #fff; padding: 40px">
-          Hello World
+      <!-- ============ SCENE 1: HOOK 3x3 (0.0 - 3.0) ============ -->
+      <div
+        id="scene-1"
+        class="clip scene-1"
+        data-start="0"
+        data-duration="3.0"
+        data-track-index="1"
+      >
+        <div class="grid-3x3">
+          <div class="cell cell-native f-dev" id="s1-tl">मैंगो पल्प</div>
+          <div class="cell cell-native small f-tam" id="s1-t">மாம்பழக் கூழ்</div>
+          <div class="cell cell-native f-ben" id="s1-tr">আমের পাল্প</div>
+          <div class="cell cell-native small f-tel" id="s1-l">మామిడి పల్ప్</div>
+          <div class="cell cell-center">
+            <div class="s1-logomark font-display-h" id="s1-logo">B</div>
+          </div>
+          <div class="cell cell-native small f-kan" id="s1-r">ಮಾವಿನ ಪಲ್ಪ್</div>
+          <div class="cell cell-native small f-mal" id="s1-bl">മാങ്ങാ പൾപ്പ്</div>
+          <div class="cell cell-native f-gur" id="s1-b">ਅੰਬ ਪਲਪ</div>
+          <div class="cell cell-native f-guj" id="s1-br">કેરીનો પલ્પ</div>
         </div>
-      -->
+      </div>
+
+      <!-- ============ SCENE 2: WORDMARK (3.0 - 6.2) ============ -->
+      <div
+        id="scene-2"
+        class="clip scene-2"
+        data-start="3.0"
+        data-duration="3.2"
+        data-track-index="1"
+      >
+        <div class="s2-glow" id="s2-glow"></div>
+        <div class="s2-wordmark font-display-b" id="s2-wordmark">BazaarBoard</div>
+        <div class="s2-underline" id="s2-underline"></div>
+        <div class="s2-tagline" id="s2-tagline">
+          Type once. Print, post, share —<br />in every Indian script that matters.
+        </div>
+      </div>
+
+      <!-- ============ SCENE 3: LIVE EDITOR (6.2 - 10.2) ============ -->
+      <div
+        id="scene-3"
+        class="clip scene-3"
+        data-start="6.2"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s3-input-wrap">
+          <div class="s3-input">
+            <span id="s3-typed"></span><span class="caret" id="s3-caret"></span>
+          </div>
+        </div>
+        <div class="s3-grid">
+          <div class="s3-tile" id="s3-t1">
+            <div class="s3-tile-phrase f-dev">मैंगो पल्प</div>
+            <div class="s3-tile-price f-dev">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t2">
+            <div class="s3-tile-phrase f-tam">மாம்பழக் கூழ்</div>
+            <div class="s3-tile-price f-tam">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t3">
+            <div class="s3-tile-phrase f-ben">আমের পাল্প</div>
+            <div class="s3-tile-price f-ben">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t4">
+            <div class="s3-tile-phrase f-tel">మామిడి పల్ప్</div>
+            <div class="s3-tile-price f-tel">₹120</div>
+          </div>
+          <div class="s3-tile s3-tile-center" id="s3-tc">
+            <div class="s3-tile-phrase latin">Alphonso mango pulp</div>
+            <div class="s3-tile-price">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t5">
+            <div class="s3-tile-phrase f-kan">ಮಾವಿನ ಪಲ್ಪ್</div>
+            <div class="s3-tile-price f-kan">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t6">
+            <div class="s3-tile-phrase f-mal">മാങ്ങാ പൾപ്പ്</div>
+            <div class="s3-tile-price f-mal">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t7">
+            <div class="s3-tile-phrase f-gur">ਅੰਬ ਪਲਪ</div>
+            <div class="s3-tile-price f-gur">₹120</div>
+          </div>
+          <div class="s3-tile" id="s3-t8">
+            <div class="s3-tile-phrase f-guj">કેરીનો પલ્પ</div>
+            <div class="s3-tile-price f-guj">₹120</div>
+          </div>
+        </div>
+        <div class="s3-chip font-ui" id="s3-chip">0.3s · NB2 Lite</div>
+      </div>
+
+      <!-- ============ SCENE 4: MOAT (10.2 - 14.0) ============ -->
+      <div
+        id="scene-4"
+        class="clip scene-4"
+        data-start="10.2"
+        data-duration="3.8"
+        data-track-index="1"
+      >
+        <div class="s4-tile s4-left" id="s4-left">
+          <div class="s4-eyebrow s4-eyebrow-canva">Canva</div>
+          <div class="s4-glyph f-dev">मैंगो पलप</div>
+          <div class="s4-broken-tag" id="s4-tag">broken conjunct</div>
+        </div>
+        <div class="s4-tile s4-right" id="s4-right">
+          <div class="s4-eyebrow s4-eyebrow-bb">BazaarBoard</div>
+          <div class="s4-glyph f-dev">मैंगो पल्प</div>
+          <div class="s4-correct-tag">correct</div>
+        </div>
+        <div class="s4-punch font-display-b" id="s4-punch">
+          Canva breaks. BazaarBoard doesn't.
+        </div>
+      </div>
+
+      <!-- ============ SCENE 5: BULK STAT (14.0 - 17.0) ============ -->
+      <div
+        id="scene-5"
+        class="clip scene-5"
+        data-start="14.0"
+        data-duration="3.0"
+        data-track-index="1"
+      >
+        <div class="s5-glow" id="s5-glow"></div>
+        <div class="s5-stack">
+          <div class="s5-number font-display-h" id="s5-num">0</div>
+          <div class="s5-label font-ui" id="s5-label">posters</div>
+          <div class="s5-subcopy font-ui" id="s5-subcopy">
+            8 langs × 3 surfaces × 25 SKUs · 42s · $0.20
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 6: IMPACT + CTA (17.0 - 22.0) ============ -->
+      <div
+        id="scene-6"
+        class="clip scene-6"
+        data-start="17.0"
+        data-duration="5.0"
+        data-track-index="1"
+      >
+        <div class="s6-impact" id="s6-impact">
+          <div class="s6-line font-display-b" id="s6-l1">63M kirana stores.</div>
+          <div class="s6-line font-display-b" id="s6-l2">375M posters/year.</div>
+          <div class="s6-line font-display-b" id="s6-l3">All in their script.</div>
+        </div>
+
+        <div class="s6-grid-wrap" id="s6-grid-wrap">
+          <div class="grid-3x3">
+            <div class="cell cell-native f-dev" style="opacity: 1">मैंगो पल्प</div>
+            <div class="cell cell-native small f-tam" style="opacity: 1">மாம்பழக் கூழ்</div>
+            <div class="cell cell-native f-ben" style="opacity: 1">আমের পাল্প</div>
+            <div class="cell cell-native small f-tel" style="opacity: 1">మామిడి పల్ప్</div>
+            <div class="cell cell-center">
+              <div style="text-align: center">
+                <div class="s6-cta font-ui">bazaarboard.vercel.app</div>
+                <div class="s6-cta-underline" id="s6-underline"></div>
+              </div>
+            </div>
+            <div class="cell cell-native small f-kan" style="opacity: 1">ಮಾವಿನ ಪಲ್ಪ್</div>
+            <div class="cell cell-native small f-mal" style="opacity: 1">മാങ്ങാ പൾപ്പ്</div>
+            <div class="cell cell-native f-gur" style="opacity: 1">ਅੰਬ ਪਲਪ</div>
+            <div class="cell cell-native f-guj" style="opacity: 1">કેરીનો પલ્પ</div>
+          </div>
+        </div>
+
+        <div class="s6-kicker font-ui" id="s6-kicker">
+          Every Indian script, live in 4 seconds.
+        </div>
+      </div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      // Example: tl.from("#title", { opacity: 0, y: -50, duration: 1 }, 0);
+
+      // ==================== SCENE 1: 3x3 HOOK ====================
+      // Center logomark scale-in
+      tl.fromTo(
+        "#s1-logo",
+        { scale: 0.96, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.3, ease: "power2.out" },
+        0.05
+      );
+
+      // 8 surrounding cells pop staggered every 0.17s
+      const s1Cells = [
+        "#s1-tl",
+        "#s1-t",
+        "#s1-tr",
+        "#s1-l",
+        "#s1-r",
+        "#s1-bl",
+        "#s1-b",
+        "#s1-br",
+      ];
+      const s1Starts = [0.2, 0.37, 0.54, 0.71, 0.88, 1.05, 1.22, 1.39];
+      s1Cells.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, y: 12, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power2.out" },
+          s1Starts[i]
+        );
+      });
+
+      // ==================== SCENE 2: WORDMARK ====================
+      // Wordmark scale-punch entrance
+      tl.fromTo(
+        "#s2-wordmark",
+        { opacity: 0, scale: 0.98 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" },
+        3.1
+      );
+
+      // Radial glow with subtle breathing
+      tl.fromTo(
+        "#s2-glow",
+        { opacity: 0 },
+        { opacity: 0.24, duration: 0.5, ease: "power2.out" },
+        3.2
+      );
+      tl.to(
+        "#s2-glow",
+        {
+          opacity: 0.32,
+          duration: 0.8,
+          repeat: 2,
+          yoyo: true,
+          ease: "sine.inOut",
+        },
+        3.8
+      );
+
+      // Underline sweep
+      tl.fromTo(
+        "#s2-underline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.7, ease: "power3.out" },
+        3.5
+      );
+
+      // Tagline fade-up
+      tl.fromTo(
+        "#s2-tagline",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        3.55
+      );
+
+      // ==================== SCENE 3: LIVE EDITOR ====================
+      // Typewriter effect on the input
+      const typedTarget = "Alphonso mango pulp    ₹120";
+      const s3typed = document.getElementById("s3-typed");
+      const charState = { n: 0 };
+      tl.to(
+        charState,
+        {
+          n: typedTarget.length,
+          duration: 0.7,
+          ease: "none",
+          onUpdate: () => {
+            if (s3typed) {
+              s3typed.textContent = typedTarget.slice(0, Math.round(charState.n));
+            }
+          },
+        },
+        6.3
+      );
+      // Blinking caret oscillation (finite)
+      tl.to(
+        "#s3-caret",
+        { opacity: 0.15, duration: 0.35, repeat: 8, yoyo: true, ease: "power1.inOut" },
+        6.3
+      );
+
+      // 8 poster tiles + center bloom in row-major order
+      const s3Tiles = [
+        "#s3-t1",
+        "#s3-t2",
+        "#s3-t3",
+        "#s3-t4",
+        "#s3-tc",
+        "#s3-t5",
+        "#s3-t6",
+        "#s3-t7",
+        "#s3-t8",
+      ];
+      // Reading order per script: TL, T, TR, L, CENTER, R, BL, B, BR
+      const s3Starts = [7.1, 7.45, 7.8, 8.15, 8.5, 8.85, 9.2, 9.3, 9.4];
+      s3Tiles.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, y: 8, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: "power2.out" },
+          s3Starts[i]
+        );
+      });
+
+      // Latency chip appears + pulses (opacity in, then a clean scale pulse)
+      tl.fromTo(
+        "#s3-chip",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, ease: "power2.out" },
+        9.5
+      );
+      tl.fromTo(
+        "#s3-chip",
+        { scale: 1.0 },
+        { scale: 1.08, duration: 0.17, ease: "power2.out" },
+        9.5
+      );
+      tl.to(
+        "#s3-chip",
+        { scale: 1.0, duration: 0.18, ease: "power2.in" },
+        9.75
+      );
+
+      // ==================== SCENE 4: MOAT ====================
+      // Tiles slide in from left/right
+      tl.fromTo(
+        "#s4-left",
+        { opacity: 0, x: -30 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        10.2
+      );
+      tl.fromTo(
+        "#s4-right",
+        { opacity: 0, x: 30 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        10.3
+      );
+
+      // Broken tag on the left after settle
+      tl.fromTo(
+        "#s4-tag",
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        10.9
+      );
+
+      // Punchline hero
+      tl.fromTo(
+        "#s4-punch",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        11.1
+      );
+
+      // Subtle "broken" shake on the LEFT tile at ~12.6s
+      tl.to("#s4-left", { x: -2, duration: 0.04, ease: "none" }, 12.6);
+      tl.to("#s4-left", { x: 2, duration: 0.04, ease: "none" }, 12.64);
+      tl.to("#s4-left", { x: -2, duration: 0.04, ease: "none" }, 12.68);
+      tl.to("#s4-left", { x: 0, duration: 0.03, ease: "none" }, 12.72);
+
+      // ==================== SCENE 5: BULK STAT ====================
+      // Radial glow
+      tl.fromTo(
+        "#s5-glow",
+        { opacity: 0 },
+        { opacity: 0.24, duration: 0.5, ease: "power2.out" },
+        14.05
+      );
+
+      // Big number count-up 0 → 600 with stable increments
+      tl.fromTo(
+        "#s5-num",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        14.05
+      );
+      const countState = { v: 0 };
+      const s5num = document.getElementById("s5-num");
+      tl.to(
+        countState,
+        {
+          v: 600,
+          duration: 0.9,
+          ease: "power2.out",
+          onUpdate: () => {
+            if (s5num) {
+              // Snap to even 2s for stable feel (300 steps)
+              const val = Math.round(countState.v / 2) * 2;
+              s5num.textContent = String(val);
+            }
+          },
+        },
+        14.1
+      );
+
+      // Label fades in
+      tl.fromTo(
+        "#s5-label",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        14.7
+      );
+
+      // Subcopy
+      tl.fromTo(
+        "#s5-subcopy",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        15.1
+      );
+
+      // ==================== SCENE 6: IMPACT + CTA ====================
+      // Beat A: three impact lines stagger
+      tl.fromTo(
+        "#s6-l1",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        17.05
+      );
+      tl.fromTo(
+        "#s6-l2",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        17.4
+      );
+      tl.fromTo(
+        "#s6-l3",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        17.75
+      );
+
+      // Impact block shrinks + fades out
+      tl.to(
+        "#s6-impact",
+        {
+          opacity: 0,
+          scale: 0.6,
+          duration: 0.4,
+          ease: "power2.in",
+        },
+        19.3
+      );
+
+      // Beat B: grid recall + CTA
+      tl.fromTo(
+        "#s6-grid-wrap",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        19.4
+      );
+
+      // CTA underline draws
+      tl.fromTo(
+        "#s6-underline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.4, ease: "power3.out" },
+        20.0
+      );
+
+      // Kicker fades up
+      tl.fromTo(
+        "#s6-kicker",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        20.4
+      );
+
       window.__timelines["main"] = tl;
     </script>
   </body>

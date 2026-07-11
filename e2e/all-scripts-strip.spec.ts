@@ -1,26 +1,34 @@
-import { test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * AllScriptsStrip renders 8 tiles for every non-English Indic script.
- *
- * SKIPPED against the deployed build — the "All 8 scripts strip" toggle
- * ships in the source tree but isn't in production yet.
+ * The strip is ON by default in single mode.
  */
+
+async function dismissOnboarding(page: Page): Promise<void> {
+  const startBtn = page.getByRole("button", { name: /start creating/i });
+  if (await startBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await startBtn.click();
+    await page.waitForTimeout(300);
+  }
+}
+
 test.describe("AllScriptsStrip", () => {
-  test.skip("renders 8 tiles when toggled on", async ({ page }) => {
+  test("renders 8 tiles by default in single mode", async ({ page }) => {
     await page.goto("/");
+    await dismissOnboarding(page);
     await page.getByRole("tab", { name: /Live editor/i }).click();
+
+    // Toggle should be present and aria-pressed=true by default.
     const toggle = page.getByRole("button", { name: /All 8 scripts strip/i });
-    await toggle.waitFor({ state: "visible" });
-    if ((await toggle.getAttribute("aria-pressed")) !== "true") {
-      await toggle.click();
-    }
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+
     const region = page.locator(
       'section[aria-label="All Indian scripts strip"]',
     );
-    await region.first().waitFor({ state: "visible", timeout: 10_000 });
+    await expect(region.first()).toBeVisible({ timeout: 10_000 });
     const tiles = region.first().locator(".poster");
-    // Playwright expect not imported to keep skipped body lightweight.
-    if ((await tiles.count()) !== 8) throw new Error("expected 8 tiles");
+    await expect(tiles).toHaveCount(8);
   });
 });

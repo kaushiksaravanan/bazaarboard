@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600;1,9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&family=Noto+Sans+Malayalam:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Sans+Gujarati:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {
@@ -12,61 +18,1001 @@
       }
       html,
       body {
-        margin: 0;
         width: 1080px;
         height: 1920px;
         overflow: hidden;
-        background: #000;
+        background: #f5efe3;
       }
       body {
-        font-family: "Inter", sans-serif;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: #1f1409;
       }
-      code,
-      pre,
-      .monospace {
-        font-family: "JetBrains Mono", monospace;
+      .font-display {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 500;
+      }
+      .font-display-b {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 600;
+      }
+      .font-display-num {
+        font-family: "Fraunces", serif;
+        font-style: normal;
+        font-weight: 600;
+      }
+      .font-ui {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      .f-dev {
+        font-family: "Noto Sans Devanagari", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tam {
+        font-family: "Noto Sans Tamil", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-ben {
+        font-family: "Noto Sans Bengali", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-tel {
+        font-family: "Noto Sans Telugu", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-kan {
+        font-family: "Noto Sans Kannada", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-mal {
+        font-family: "Noto Sans Malayalam", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-gur {
+        font-family: "Noto Sans Gurmukhi", "Plus Jakarta Sans", sans-serif;
+      }
+      .f-guj {
+        font-family: "Noto Sans Gujarati", "Plus Jakarta Sans", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+
+      .bg-canvas {
+        position: absolute;
+        inset: 0;
+        background: #f5efe3;
+        z-index: 0;
+      }
+
+      /* Font warm-up — off-screen glyph render so first frame doesn't swap */
+      .font-warmup {
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        font-size: 20px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ===== SCENE 1: HOOK ===== */
+      .scene-1 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s1-glow {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 900px;
+        height: 900px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.35) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(160px);
+        opacity: 0;
+      }
+      .s1-hero {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 320px;
+        font-weight: 700;
+        color: #f26b1f;
+        line-height: 1.05;
+        text-align: center;
+        letter-spacing: -0.01em;
+        max-width: 960px;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .s1-tagline {
+        position: absolute;
+        left: 50%;
+        top: 1500px;
+        transform: translateX(-50%);
+        font-size: 44px;
+        color: rgba(31, 20, 9, 0.85);
+        text-align: center;
+        line-height: 1.3;
+        opacity: 0;
+        white-space: nowrap;
+      }
+
+      /* ===== SCENE 2: VERTICAL 8-SCRIPT COLUMN ===== */
+      .scene-2 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s2-column {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+      .s2-item {
+        width: 100%;
+        text-align: center;
+        font-size: 150px;
+        color: #1f1409;
+        font-weight: 600;
+        line-height: 1.05;
+        opacity: 0;
+      }
+
+      /* ===== SCENE 3: LOGO REVEAL ===== */
+      .scene-3 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s3-logo {
+        position: absolute;
+        left: 50%;
+        top: 900px;
+        transform: translate(-50%, -50%);
+        font-size: 168px;
+        color: #1f1409;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        opacity: 0;
+        line-height: 1;
+      }
+      .s3-tagline {
+        position: absolute;
+        left: 50%;
+        top: 1120px;
+        transform: translateX(-50%);
+        width: 940px;
+        font-size: 40px;
+        font-weight: 500;
+        color: rgba(31, 20, 9, 0.8);
+        text-align: center;
+        line-height: 1.35;
+        opacity: 0;
+      }
+
+      /* ===== SCENE 4: LIVE EDITOR ===== */
+      .scene-4 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s4-input-wrap {
+        position: absolute;
+        left: 50%;
+        top: 380px;
+        transform: translateX(-50%);
+        width: 900px;
+      }
+      .s4-input {
+        width: 100%;
+        background: #ffffff;
+        border: 1px solid rgba(31, 20, 9, 0.3);
+        border-radius: 12px;
+        padding: 20px 24px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 40px;
+        font-weight: 500;
+        color: #1f1409;
+        white-space: nowrap;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+      .s4-caret {
+        display: inline-block;
+        width: 3px;
+        height: 44px;
+        background: #f26b1f;
+        vertical-align: middle;
+        margin-left: 4px;
+      }
+      .s4-chip {
+        position: absolute;
+        right: 0;
+        top: -60px;
+        background: rgba(31, 20, 9, 0.06);
+        color: #1f1409;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 500;
+        font-size: 24px;
+        opacity: 0;
+      }
+      .s4-tiles {
+        position: absolute;
+        left: 50%;
+        top: 600px;
+        transform: translateX(-50%);
+        width: 900px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+      .s4-tile {
+        background: #f26b1f;
+        border-radius: 12px;
+        padding: 32px 24px;
+        aspect-ratio: 3 / 4;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: #f5efe3;
+        opacity: 0;
+        box-shadow: 0 6px 24px rgba(31, 20, 9, 0.08);
+      }
+      .s4-tile-phrase {
+        font-size: 44px;
+        font-weight: 700;
+        color: #f5efe3;
+        line-height: 1.15;
+      }
+      .s4-tile-price {
+        font-size: 32px;
+        font-weight: 500;
+        color: rgba(245, 239, 227, 0.9);
+        line-height: 1.15;
+      }
+      .s4-tile-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      .s4-tile-label {
+        font-size: 20px;
+        font-weight: 600;
+        color: rgba(245, 239, 227, 0.85);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .s4-tile-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #f5efe3;
+      }
+
+      /* ===== SCENE 5: MOAT ===== */
+      .scene-5 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s5-top {
+        position: absolute;
+        left: 0;
+        top: 240px;
+        width: 100%;
+        height: 620px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+      }
+      .s5-bot {
+        position: absolute;
+        left: 0;
+        top: 1060px;
+        width: 100%;
+        height: 620px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+      }
+      .s5-divider {
+        position: absolute;
+        left: 90px;
+        right: 90px;
+        top: 960px;
+        height: 1px;
+        background: rgba(31, 20, 9, 0.1);
+      }
+      .s5-label {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 600;
+        font-size: 32px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+      }
+      .s5-label-canva {
+        color: rgba(31, 20, 9, 0.6);
+      }
+      .s5-label-bb {
+        color: #f26b1f;
+      }
+      .s5-label-bb .tick {
+        display: inline-block;
+        margin-left: 10px;
+        color: #7ba05b;
+      }
+      .s5-word {
+        font-size: 260px;
+        font-weight: 700;
+        color: #1f1409;
+        line-height: 1;
+      }
+      .s5-word-broken {
+        letter-spacing: 0.06em;
+        position: relative;
+        display: inline-block;
+      }
+      .s5-word-broken .drift {
+        display: inline-block;
+        transform: translateY(-14px) translateX(6px);
+      }
+      .s5-coral {
+        width: 380px;
+        height: 4px;
+        background: #e85d3c;
+        margin-top: 18px;
+        opacity: 0;
+      }
+      .s5-overlay {
+        position: absolute;
+        left: 50%;
+        top: 960px;
+        transform: translate(-50%, -50%);
+        background: rgba(245, 239, 227, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(31, 20, 9, 0.15);
+        border-radius: 24px;
+        padding: 32px 48px;
+        text-align: center;
+        font-size: 68px;
+        color: #1f1409;
+        white-space: nowrap;
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+      }
+
+      /* ===== SCENE 6: BULK STAT ===== */
+      .scene-6 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s6-label {
+        position: absolute;
+        left: 50%;
+        top: 700px;
+        transform: translateX(-50%);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 500;
+        font-size: 34px;
+        color: rgba(31, 20, 9, 0.75);
+        letter-spacing: 0.02em;
+        opacity: 0;
+      }
+      .s6-count {
+        position: absolute;
+        left: 50%;
+        top: 960px;
+        transform: translate(-50%, -50%);
+        font-size: 320px;
+        color: #f26b1f;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        opacity: 0;
+      }
+      .s6-breakdown {
+        position: absolute;
+        left: 50%;
+        top: 1300px;
+        transform: translateX(-50%);
+        width: 960px;
+        text-align: center;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 500;
+        font-size: 32px;
+        color: rgba(31, 20, 9, 0.85);
+        line-height: 1.35;
+        opacity: 0;
+      }
+      .s6-breakdown .line {
+        display: block;
+      }
+
+      /* ===== SCENE 7: PUNCHLINE + CTA ===== */
+      .scene-7 {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+      }
+      .s7-line {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 88px;
+        line-height: 1.15;
+        white-space: nowrap;
+        text-align: center;
+        color: #1f1409;
+        opacity: 0;
+      }
+      .s7-l1 {
+        top: 580px;
+      }
+      .s7-l2 {
+        top: 780px;
+      }
+      .s7-l3 {
+        top: 980px;
+        color: #f26b1f;
+      }
+      .s7-their {
+        display: inline-block;
+        transform-origin: center center;
+      }
+      .s7-cta {
+        position: absolute;
+        left: 50%;
+        top: 1520px;
+        transform: translate(-50%, -50%);
+        background: #f5efe3;
+        border: 2px solid #f26b1f;
+        border-radius: 24px;
+        padding: 20px 32px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 600;
+        font-size: 44px;
+        color: #1f1409;
+        letter-spacing: 0.005em;
+        opacity: 0;
+      }
+      .s7-glow {
+        position: absolute;
+        left: 50%;
+        top: 1520px;
+        width: 700px;
+        height: 300px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(242, 107, 31, 0.28) 0%,
+          rgba(242, 107, 31, 0) 70%
+        );
+        filter: blur(120px);
+        opacity: 0;
       }
     </style>
-  
-<script>
-window.__tailwindReady=new Promise(function(resolve){
-var loaded=document.readyState==="complete";
-var resolved=false;
-var observer;
-function readTailwindCss(){var styles=document.querySelectorAll("style");for(var i=styles.length-1;i>=0;i--){var text=styles[i].textContent||"";if(text.indexOf("tailwindcss v")!==-1)return text;}return "";}
-function finish(){if(resolved||!loaded||!readTailwindCss())return;resolved=true;if(observer)observer.disconnect();resolve(true);}
-observer=new MutationObserver(finish);
-observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
-if(loaded){finish();}else{window.addEventListener("load",function(){loaded=true;finish();},{once:true});}
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js" integrity="sha384-v5YF9xS+gLRWdvrQ0u/WRbCkjSIH0NjHIPe8tBL1ZRrmI7PiSH6LLdzs0aAIMCuh" crossorigin="anonymous"></script>
-</head>
+  </head>
   <body>
     <div
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
+      data-duration="22"
       data-width="1080"
       data-height="1920"
     >
-      
-      
+      <div class="bg-canvas"></div>
 
-      <!--
-        Add your clips here. Example:
-        <div id="title" class="clip" data-start="0" data-duration="5" data-track-index="1"
-             style="font-size: 64px; color: #fff; padding: 40px">
-          Hello World
+      <!-- Font warm-up — render one glyph from each Indic family so no swap flashes -->
+      <div class="font-warmup" aria-hidden="true">
+        <span class="f-dev">म</span>
+        <span class="f-tam">ம</span>
+        <span class="f-ben">আ</span>
+        <span class="f-tel">మ</span>
+        <span class="f-kan">ಮ</span>
+        <span class="f-mal">മ</span>
+        <span class="f-gur">ਅ</span>
+        <span class="f-guj">ક</span>
+        <span class="font-display">Aa</span>
+        <span class="font-display-b">Aa</span>
+        <span class="font-display-num">0</span>
+      </div>
+
+      <!-- ============ SCENE 1: HOOK (0.0 - 2.0) ============ -->
+      <div
+        id="scene-1"
+        class="clip scene-1"
+        data-start="0"
+        data-duration="2.0"
+        data-track-index="1"
+      >
+        <div class="s1-glow" id="s1-glow"></div>
+        <div class="s1-hero f-dev" id="s1-hero">मैंगो पल्प</div>
+        <div class="s1-tagline font-display" id="s1-tagline">
+          one input. every Indian script.
         </div>
-      -->
+      </div>
+
+      <!-- ============ SCENE 2: 8-SCRIPT COLUMN (2.0 - 6.0) ============ -->
+      <div
+        id="scene-2"
+        class="clip scene-2"
+        data-start="2.0"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s2-column">
+          <div class="s2-item f-dev" id="s2-i1">मैंगो पल्प</div>
+          <div class="s2-item f-tam" id="s2-i2">மாம்பழக் கூழ்</div>
+          <div class="s2-item f-ben" id="s2-i3">আমের পাল্প</div>
+          <div class="s2-item f-tel" id="s2-i4">మామిడి పల్ప్</div>
+          <div class="s2-item f-kan" id="s2-i5">ಮಾವಿನ ಪಲ್ಪ್</div>
+          <div class="s2-item f-mal" id="s2-i6">മാങ്ങാ പൾപ്പ്</div>
+          <div class="s2-item f-gur" id="s2-i7">ਅੰਬ ਪਲਪ</div>
+          <div class="s2-item f-guj" id="s2-i8">કેરીનો પલ્પ</div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 3: LOGO REVEAL (6.0 - 8.0) ============ -->
+      <div
+        id="scene-3"
+        class="clip scene-3"
+        data-start="6.0"
+        data-duration="2.0"
+        data-track-index="1"
+      >
+        <div class="s3-logo font-display-b" id="s3-logo">BazaarBoard</div>
+        <div class="s3-tagline" id="s3-tagline">
+          Type once. Print, post, share —<br />in every Indian script that
+          matters.
+        </div>
+      </div>
+
+      <!-- ============ SCENE 4: LIVE EDITOR (8.0 - 12.0) ============ -->
+      <div
+        id="scene-4"
+        class="clip scene-4"
+        data-start="8.0"
+        data-duration="4.0"
+        data-track-index="1"
+      >
+        <div class="s4-input-wrap">
+          <div class="s4-chip" id="s4-chip">0.3s · NB2 Lite</div>
+          <div class="s4-input">
+            <span id="s4-typed"></span
+            ><span class="s4-caret" id="s4-caret"></span>
+          </div>
+        </div>
+        <div class="s4-tiles">
+          <div class="s4-tile" id="s4-t1">
+            <div class="s4-tile-phrase f-dev">मैंगो पल्प</div>
+            <div class="s4-tile-price f-dev">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Hindi</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t2">
+            <div class="s4-tile-phrase f-tam">மாம்பழக் கூழ்</div>
+            <div class="s4-tile-price f-tam">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Tamil</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t3">
+            <div class="s4-tile-phrase f-ben">আমের পাল্প</div>
+            <div class="s4-tile-price f-ben">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Bengali</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t4">
+            <div class="s4-tile-phrase f-tel">మామిడి పల్ప్</div>
+            <div class="s4-tile-price f-tel">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Telugu</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t5">
+            <div class="s4-tile-phrase f-kan">ಮಾವಿನ ಪಲ್ಪ್</div>
+            <div class="s4-tile-price f-kan">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Kannada</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t6">
+            <div class="s4-tile-phrase f-mal">മാങ്ങാ പൾപ്പ്</div>
+            <div class="s4-tile-price f-mal">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Malayalam</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t7">
+            <div class="s4-tile-phrase f-gur">ਅੰਬ ਪਲਪ</div>
+            <div class="s4-tile-price f-gur">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Punjabi</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+          <div class="s4-tile" id="s4-t8">
+            <div class="s4-tile-phrase f-guj">કેરીનો પલ્પ</div>
+            <div class="s4-tile-price f-guj">₹120</div>
+            <div class="s4-tile-foot">
+              <div class="s4-tile-label">Gujarati</div>
+              <div class="s4-tile-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 5: THE MOAT (12.0 - 15.5) ============ -->
+      <div
+        id="scene-5"
+        class="clip scene-5"
+        data-start="12.0"
+        data-duration="3.5"
+        data-track-index="1"
+      >
+        <div class="s5-top" id="s5-top">
+          <div class="s5-label s5-label-canva">Canva</div>
+          <div class="s5-word f-dev s5-word-broken"
+            ><span class="drift">मै</span>ंगो</div>
+          <div class="s5-coral" id="s5-coral"></div>
+        </div>
+        <div class="s5-divider"></div>
+        <div class="s5-bot" id="s5-bot">
+          <div class="s5-label s5-label-bb">
+            BazaarBoard<span class="tick">✓</span>
+          </div>
+          <div class="s5-word f-dev">मैंगो</div>
+        </div>
+        <div class="s5-overlay font-display-b" id="s5-overlay">
+          Canva breaks. BazaarBoard doesn't.
+        </div>
+      </div>
+
+      <!-- ============ SCENE 6: BULK STAT (15.5 - 19.0) ============ -->
+      <div
+        id="scene-6"
+        class="clip scene-6"
+        data-start="15.5"
+        data-duration="3.5"
+        data-track-index="1"
+      >
+        <div class="s6-label" id="s6-label">posters, rendered</div>
+        <div class="s6-count font-display-num" id="s6-count">0</div>
+        <div class="s6-breakdown" id="s6-breakdown">
+          <span class="line">8 languages × 3 surfaces × 25 products</span>
+          <span class="line">42 seconds · $0.20</span>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 7: PUNCHLINE + CTA (19.0 - 22.0) ============ -->
+      <div
+        id="scene-7"
+        class="clip scene-7"
+        data-start="19.0"
+        data-duration="3.0"
+        data-track-index="1"
+      >
+        <div class="s7-line s7-l1 font-display-b" id="s7-l1">
+          63M kirana stores.
+        </div>
+        <div class="s7-line s7-l2 font-display-b" id="s7-l2">
+          375M posters a year.
+        </div>
+        <div class="s7-line s7-l3 font-display-b" id="s7-l3">
+          All in <span class="s7-their" id="s7-their">their</span> script.
+        </div>
+        <div class="s7-glow" id="s7-glow"></div>
+        <div class="s7-cta" id="s7-cta">bazaarboard.vercel.app</div>
+      </div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      // Example: tl.from("#title", { opacity: 0, y: -50, duration: 1 }, 0);
+
+      // ==================== SCENE 1 (0.0 - 2.0) ====================
+      // Hero word slam-in at 0.15s
+      tl.fromTo(
+        "#s1-hero",
+        { opacity: 0, scale: 0.94 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.5,
+          ease: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+        },
+        0.15
+      );
+      // Tangerine glow subtle breathing (audio-reactive proxy)
+      tl.fromTo(
+        "#s1-glow",
+        { opacity: 0 },
+        { opacity: 0.2, duration: 0.4, ease: "power2.out" },
+        0.15
+      );
+      tl.to(
+        "#s1-glow",
+        {
+          opacity: 0.28,
+          duration: 0.7,
+          repeat: 1,
+          yoyo: true,
+          ease: "sine.inOut",
+        },
+        0.6
+      );
+      // Tagline fade-up at 0.9s
+      tl.fromTo(
+        "#s1-tagline",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        0.9
+      );
+
+      // ==================== SCENE 2 (2.0 - 6.0) ====================
+      // 8 scripts arrive with 0.35s stagger, beat-locked
+      const s2Items = [
+        "#s2-i1",
+        "#s2-i2",
+        "#s2-i3",
+        "#s2-i4",
+        "#s2-i5",
+        "#s2-i6",
+        "#s2-i7",
+        "#s2-i8",
+      ];
+      const s2Starts = [2.15, 2.5, 2.85, 3.2, 3.55, 3.9, 4.25, 4.6];
+      s2Items.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+          s2Starts[i]
+        );
+      });
+
+      // ==================== SCENE 3 (6.0 - 8.0) ====================
+      // Logo slam at 6.05s (beat-locked ~6.0s)
+      tl.fromTo(
+        "#s3-logo",
+        { opacity: 0, scale: 0.96 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.4,
+          ease: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+        },
+        6.05
+      );
+      // Tagline fade-up at 6.20s
+      tl.fromTo(
+        "#s3-tagline",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        6.2
+      );
+
+      // ==================== SCENE 4 (8.0 - 12.0) ====================
+      // Typewriter effect
+      const s4Text = "Alphonso mango pulp / ₹120";
+      const s4Typed = document.getElementById("s4-typed");
+      const s4TypeState = { n: 0 };
+      tl.to(
+        s4TypeState,
+        {
+          n: s4Text.length,
+          duration: 1.4,
+          ease: "none",
+          onUpdate: () => {
+            if (s4Typed) {
+              s4Typed.textContent = s4Text.slice(0, Math.round(s4TypeState.n));
+            }
+          },
+        },
+        8.1
+      );
+      // Caret blink through scene
+      tl.to(
+        "#s4-caret",
+        {
+          opacity: 0.2,
+          duration: 0.4,
+          repeat: 9,
+          yoyo: true,
+          ease: "power1.inOut",
+        },
+        8.0
+      );
+      // Latency chip at 9.90s with pulse
+      tl.fromTo(
+        "#s4-chip",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1.08, duration: 0.2, ease: "power2.out" },
+        9.9
+      );
+      tl.to(
+        "#s4-chip",
+        { scale: 1, duration: 0.15, ease: "power2.inOut" },
+        10.1
+      );
+      // 8 tiles fan in 9.90 - 10.22 with 40ms stagger
+      const s4Tiles = [
+        "#s4-t1",
+        "#s4-t2",
+        "#s4-t3",
+        "#s4-t4",
+        "#s4-t5",
+        "#s4-t6",
+        "#s4-t7",
+        "#s4-t8",
+      ];
+      s4Tiles.forEach((sel, i) => {
+        tl.fromTo(
+          sel,
+          { opacity: 0, scale: 0.94, y: 12 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: "power2.out" },
+          9.9 + i * 0.04
+        );
+      });
+
+      // ==================== SCENE 5 (12.0 - 15.5) ====================
+      // Top (Canva broken) fades in first
+      tl.fromTo(
+        "#s5-top",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: "power2.out" },
+        12.05
+      );
+      tl.fromTo(
+        "#s5-coral",
+        { opacity: 0, scaleX: 0 },
+        { opacity: 1, scaleX: 1, duration: 0.4, ease: "power2.out" },
+        12.35
+      );
+      // Bottom (BazaarBoard correct) fades in
+      tl.fromTo(
+        "#s5-bot",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: "power2.out" },
+        12.6
+      );
+      // Overlay wipe at 14.0s (beat-locked strong cue)
+      tl.fromTo(
+        "#s5-overlay",
+        { opacity: 1, clipPath: "inset(0 100% 0 0)" },
+        {
+          opacity: 1,
+          clipPath: "inset(0 0% 0 0)",
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        14.0
+      );
+
+      // ==================== SCENE 6 (15.5 - 19.0) ====================
+      // Label fades in
+      tl.fromTo(
+        "#s6-label",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        15.55
+      );
+      // Count-up 0 -> 600 with spring settle
+      const s6CountState = { v: 0 };
+      const s6CountEl = document.getElementById("s6-count");
+      tl.fromTo(
+        "#s6-count",
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" },
+        15.6
+      );
+      tl.to(
+        s6CountState,
+        {
+          v: 600,
+          duration: 1.4,
+          ease: "power2.out",
+          onUpdate: () => {
+            if (s6CountEl) {
+              const n = Math.min(600, Math.round(s6CountState.v));
+              s6CountEl.textContent = String(n);
+            }
+          },
+        },
+        15.6
+      );
+      // Breakdown fades up
+      tl.fromTo(
+        "#s6-breakdown",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        17.3
+      );
+
+      // ==================== SCENE 7 (19.0 - 22.0) ====================
+      tl.fromTo(
+        "#s7-l1",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        19.1
+      );
+      tl.fromTo(
+        "#s7-l2",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        19.35
+      );
+      tl.fromTo(
+        "#s7-l3",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+        19.6
+      );
+      // Scale-punch on "their" at 19.9s (beat-locked ~19.5s)
+      tl.to(
+        "#s7-their",
+        {
+          scale: 1.15,
+          duration: 0.25,
+          ease: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        },
+        19.9
+      );
+      tl.to(
+        "#s7-their",
+        {
+          scale: 1,
+          duration: 0.25,
+          ease: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        },
+        20.15
+      );
+      // CTA card at 20.6s
+      tl.fromTo(
+        "#s7-glow",
+        { opacity: 0 },
+        { opacity: 0.22, duration: 0.4, ease: "power2.out" },
+        20.6
+      );
+      tl.fromTo(
+        "#s7-cta",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+        20.6
+      );
+
       window.__timelines["main"] = tl;
     </script>
   </body>
