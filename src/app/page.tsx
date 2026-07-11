@@ -705,6 +705,14 @@ export default function Home(): React.ReactElement {
           <div className="flex items-center gap-2 flex-wrap ml-auto">
             <ThroughputBar stats={stats} flash={throughputFlash} />
             <Link
+              href="/design"
+              aria-label="Live design mode — speak, poster appears"
+              title="Just say it. Watch it appear."
+              className="no-print text-xs px-3 py-2 rounded-full bg-bazaar-tangerine text-white font-medium hover:bg-bazaar-tangerine/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bazaar-tangerine focus-visible:ring-offset-2"
+            >
+              ✨ Just say it
+            </Link>
+            <Link
               href="/voice"
               aria-label="Switch to voice-first mode"
               title="Switch to voice mode"
