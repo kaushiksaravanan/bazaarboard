@@ -1,82 +1,71 @@
 # BazaarBoard
 
-**Live regional-language marketing-asset generator for 63M Indian kirana stores, street vendors, and small businesses.**
+BazaarBoard is a hackathon prototype for creating retail posters in eight Indic scripts. Enter a product and price, choose languages and output sizes, then download individual posters or a ZIP archive.
 
-Type a product and price in English or any Indian language — BazaarBoard renders print-ready posters, WhatsApp Business status graphics, and Google Business Profile cards live, in eight Indic scripts at once, powered by Gemini Nano Banana 2 Lite.
+[Hosted demo](https://bazaarboard.vercel.app) ? the hosted version may differ from this repository.
 
-Live: <https://bazaarboard.vercel.app>
+![Editor with multiple scripts](docs/screenshot-hero.png)
 
-![Hero — the live editor with eight scripts rendering in parallel](docs/screenshot-hero.png)
+![Bulk export](docs/screenshot-bulk.png)
 
-![Bulk export — 50 SKUs × 4 languages × 3 surfaces rendering in a single job](docs/screenshot-bulk.png)
+## What is implemented
 
-## What it is
+- Poster, WhatsApp status, and Google Business Profile layouts.
+- Devanagari, Tamil, Bengali, Telugu, Kannada, Malayalam, Gurmukhi, and Gujarati output.
+- A server API for Gemini image generation and an SVG fallback when no key is configured.
+- A design chat, browser voice controls, and experimental sign-language features.
+- Per-poster downloads and bulk export.
 
-BazaarBoard is a dynamic ad localizer. One product name and price fan out to N scripts × M surfaces (poster, WhatsApp 9:16, Google Business Profile 1:1) in parallel. Every keystroke re-triggers the pipeline; the grid re-renders under 4 seconds per cell. The tool does not exist without high-throughput image generation — a batch of ten Canva exports takes longer than a full BazaarBoard fan-out.
+This project demonstrates a Next.js 16 / React 19 application with typed API handlers, input validation, fallback rendering, and automated tests. Model availability, script fidelity, generation cost, and latency depend on the selected provider and model. This repository does not establish production benchmarks or measured user adoption.
 
-## How it works
+## Run locally
 
-- **Input** — a product name, a price, and a set of target languages picked from an 8-script catalog (Devanagari, Tamil, Bengali, Telugu, Kannada, Malayalam, Gurmukhi, Gujarati).
-- **Fenced prompt assembly** — user text is wrapped in an `<UNTRUSTED_INPUT>` region and paired with a strict system contract; the untrusted region can only supply the product/price/language tokens, never override the poster brief.
-- **Gemini NB2 Lite call** — the server-side `/api/generate` proxy forwards the fenced prompt to `gemini-3.1-flash-lite-image` (configurable via `NB2_MODEL`). Sub-4-second, script-accurate image output.
-- **SVG fallback + download/ZIP** — if the model call fails or no key is available, the client renders an SVG poster with the correct Noto script so the surface is never empty. Every cell has a PNG download; the header has a "download all" that streams a JSZip archive of the current grid.
-
-## Why it exists
-
-India has 22 official languages and 100+ commercial scripts. Canva, Figma, and Photoshop template libraries are Latin-first — they render passable Devanagari kerning, but they break on Tamil ligatures, Malayalam vowel signs, and Bengali conjuncts. A kirana owner in Kochi cannot ship a Malayalam-native promo poster from Canva without a graphic designer in the loop. NB2 Lite's cost/latency curve ($0.034 per 1,000 images, sub-4-second latency, 1K resolution) is the first point in the market where a live, per-keystroke, all-scripts-at-once workflow becomes economically viable.
-
-## Prize-track fit
-
-**Idea 3 — High-Throughput Creative Workflows with NB2 Lite.**
-
-> "If your app is just a standard prompt-box-to-image generator, it's not leveraging the speed of NB2 Lite. Show us automated, programmatic pipelines, dynamic ad localizers, or interactive storytelling canvases where real-time, high-volume generation is load-bearing to the user experience."
-
-BazaarBoard is a dynamic ad localizer with a load-bearing pipeline. Cost math for a real user:
-
-- A 50-SKU kirana × 4 languages × 3 surfaces = 600 posters per catalog refresh.
-- At NB2 Lite pricing ($0.034 / 1,000 images), one full refresh costs **$0.020**.
-- Twelve refreshes per year = **$0.24 per store per year** in generation cost.
-- Compare Canva Pro at $12.99/mo, and neither Canva nor Photoshop can render the scripts correctly.
-
-## Setup
+Use Node.js 22.13 or newer and npm.
 
 ```bash
-git clone https://github.com/kaushiksrv/bazaarboard.git
+git clone https://github.com/kaushiksaravanan/bazaarboard.git
 cd bazaarboard
-npm install
-cp .env.example .env.local        # then paste GEMINI_API_KEY
-npm run dev                       # http://localhost:3000
+npm ci
+cp .env.example .env.local
+npm run dev
 ```
 
-The app also supports **BYOK** — open the "API key" modal in the header and paste a Gemini key. The key is stored in `sessionStorage` only (never localStorage, never sent to any origin other than `/api/generate`) and is cleared when the tab closes.
+Open http://localhost:3000. Leave `GEMINI_API_KEY` empty to try the SVG path. To use Gemini, supply a key and select an image model available to your account with `NB2_MODEL`. The chat and gloss handlers also accept `NB2_CHAT_MODEL` and `NB2_GLOSS_MODEL` overrides. Live provider calls can incur charges.
 
-If no key is configured, the SVG fallback path still renders posters in every script, so the UI is never dead.
+The API-key modal stores a supplied key in the tab's `sessionStorage`. The browser sends it to the app's API handlers; those handlers forward it to Google in an API-key header. The model also receives the text needed for the requested generation. Do not put credentials in `NEXT_PUBLIC_*` variables.
 
-## Tests
+## Verify
 
 ```bash
-npm test          # vitest, watch mode
-npm run test:run  # vitest unit + integration, single run
-npm run e2e       # Playwright end-to-end tests
-npm run typecheck # tsc --noEmit
-npm run build     # production build
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+npm audit
 ```
 
-## Architecture
+The October 2026 maintenance check passed 960 unit and integration tests, type checking, and a production build. Lint has warnings but no errors. These checks use mocks for external services and do not verify live Gemini output or browser rendering.
 
-Next.js 16 App Router with React 19 and TypeScript strict. The client (`src/app/page.tsx`) owns the input state, the language grid, and the SVG-fallback renderer. Image generation is proxied through a same-origin App Router handler at `src/app/api/generate/route.ts`, which reads `GEMINI_API_KEY` from the server env and forwards a fenced prompt (the untrusted user tokens are wrapped in an `<UNTRUSTED_INPUT>` block that the system contract explicitly refuses to treat as instructions) to Gemini. The key is never exposed to the client bundle. All image bytes are returned as data URLs; the client packages them into a JSZip archive on demand.
+`npm run e2e` uses Playwright. Its current configuration targets the hosted demo, so it is separate from the local checks above. Inspect `playwright.config.ts` before running it.
 
-## Security notes
+## Code map and trade-offs
 
-- **No `NEXT_PUBLIC_*` credentials.** The Gemini API key lives in `.env.local` (dev) or Vercel env (prod). It is only readable from Node runtime handlers.
-- **BYOK is sessionStorage-only.** User-supplied keys never touch localStorage, cookies, or third-party origins. They ship only as an `x-gemini-key` header on same-origin `/api/generate` calls and are wiped on tab close.
-- **30-second upstream timeout.** The `/api/generate` handler aborts the Gemini call with an `AbortController` after 30 seconds and returns a well-formed error, so a hung upstream never leaks a hanging fetch to the browser.
-- **Prompt injection defense.** User text is fenced inside an `<UNTRUSTED_INPUT>` region; the system contract treats content inside the fence as data, never instructions.
+- `src/app/api/generate/route.ts`: validates generation requests, calls Gemini, and provides an SVG path when no key is configured.
+- `src/app/api/chat/route.ts`: handles design chat and tool responses.
+- `src/lib/`: generation clients, export utilities, language support, and telemetry.
+- `src/components/`: editing, voice, and poster interfaces.
+- `test/`: unit and integration tests; `e2e/`: browser journeys.
 
-## License
+An SVG fallback lets the editor work without image-generation credentials. It is a template renderer and does not provide the same output as a model. Prompt fencing is a defense in depth measure; it does not guarantee immunity to prompt injection.
 
-MIT — see [LICENSE](LICENSE).
+The app includes Vercel Analytics and Speed Insights. Its own telemetry endpoint logs usage events on the server. It is not an offline or zero-telemetry application.
 
-## Built by
+## Deployment
 
-**Kaushik Saravanan** for the Google DeepMind Bangalore Hackathon 2026.
+`vercel.json` disables automatic Git deployments. Pushing portfolio maintenance changes therefore does not update the hosted demo. To release a tested revision, deploy it manually in Vercel. To restore automatic deployment, change `git.deploymentEnabled` after reviewing the project's environment variables and intended production branch.
+
+## License and author
+
+MIT ? see [LICENSE](LICENSE).
+
+Built by Kaushik Saravanan for the Google DeepMind Bangalore Hackathon 2026.
