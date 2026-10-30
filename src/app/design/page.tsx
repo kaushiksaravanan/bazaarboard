@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import Link from "next/link";
 import { generate } from "@/lib/generate";
 import { LANGUAGES } from "@/lib/languages";
 import {
@@ -139,11 +140,17 @@ export default function DesignPage(): React.ReactElement {
   const generateControllerRef = useRef<AbortController | null>(null);
   const briefRef = useRef(brief);
   const lastRenderedBriefKeyRef = useRef<string>("");
-  briefRef.current = brief;
+  const scheduleExtractRef = useRef<(latest: string) => void>(() => undefined);
+
+  useEffect(() => {
+    briefRef.current = brief;
+  }, [brief]);
 
   // Feature-detect once.
   useEffect(() => {
-    if (!isSpeechSupported()) setMic("unsupported");
+    if (isSpeechSupported()) return;
+    const id = window.setTimeout(() => setMic("unsupported"), 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   const startListening = useCallback(() => {
@@ -174,7 +181,7 @@ export default function DesignPage(): React.ReactElement {
         } else {
           setInterim(text);
         }
-        scheduleExtract(text);
+        scheduleExtractRef.current(text);
       });
       session.onEnd(() => {
         // Auto-restart continuous listening in Chrome (it stops after each
@@ -258,6 +265,10 @@ export default function DesignPage(): React.ReactElement {
         });
     }, 800);
   }, [transcript]);
+
+  useEffect(() => {
+    scheduleExtractRef.current = scheduleExtract;
+  }, [scheduleExtract]);
 
   // Kick off a poster render whenever the brief changes meaningfully.
   useEffect(() => {
@@ -474,12 +485,12 @@ function UnsupportedCard(): React.ReactElement {
       <p className="text-2xl font-display italic mb-3">
         Voice needs Chrome, Edge, or Safari.
       </p>
-      <a
+      <Link
         href="/"
         className="inline-block px-6 py-3 rounded-full bg-bazaar-tangerine text-white font-medium"
       >
         Use text mode →
-      </a>
+      </Link>
     </div>
   );
 }
@@ -499,12 +510,12 @@ function DeniedCard({ onRetry }: { onRetry: () => void }): React.ReactElement {
       >
         Try again
       </button>
-      <a
+      <Link
         href="/"
         className="inline-block px-6 py-3 rounded-full border border-bazaar-ink/20 text-bazaar-ink font-medium"
       >
         Text mode
-      </a>
+      </Link>
     </div>
   );
 }

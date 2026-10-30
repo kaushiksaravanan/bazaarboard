@@ -95,8 +95,9 @@ export function BeforeAfterCompare({
   useEffect(() => {
     if (!productName.trim() || !price.trim()) return;
     if (isEnglish) return;
-    void runPair();
+    const timeout = window.setTimeout(() => void runPair(), 0);
     return () => {
+      window.clearTimeout(timeout);
       abortRef.current?.abort();
     };
   }, [runPair, productName, price, isEnglish]);

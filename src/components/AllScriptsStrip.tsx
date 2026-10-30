@@ -95,8 +95,9 @@ export function AllScriptsStrip({
   // Fire once on mount and whenever inputs meaningfully change.
   useEffect(() => {
     if (!productName.trim() || !price.trim()) return;
-    void runAll();
+    const timeout = window.setTimeout(() => void runAll(), 0);
     return () => {
+      window.clearTimeout(timeout);
       abortRef.current?.abort();
     };
   }, [runAll, productName, price]);

@@ -122,12 +122,19 @@ export function GlobalVoiceOrb({
   const abortRef = useRef<AbortController | null>(null);
   const finalTextRef = useRef<string>("");
   const briefRef = useRef<GlobalVoiceOrbBrief>(currentBrief);
-  briefRef.current = currentBrief;
+
+  useEffect(() => {
+    briefRef.current = currentBrief;
+  }, [currentBrief]);
 
   // Feature-detect once on mount; if unsupported, the component returns
   // null so no broken button appears (Firefox and older Safari).
   useEffect(() => {
-    setSupported(isSpeechSupported());
+    const timeout = window.setTimeout(
+      () => setSupported(isSpeechSupported()),
+      0,
+    );
+    return () => window.clearTimeout(timeout);
   }, []);
 
   // Auto-dismiss toasts after 2.5s each. We schedule per-toast rather

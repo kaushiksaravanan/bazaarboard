@@ -22,10 +22,12 @@ export function ByokKeyModal({ open, onClose }: Props): React.ReactElement | nul
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    const timeout = window.setTimeout(() => {
       setValue(getByokKey() ?? "");
       setSaved(false);
-    }
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, [open]);
 
   useEffect(() => {

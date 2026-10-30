@@ -88,7 +88,6 @@ export default function Home(): React.ReactElement {
   // Single mode
   const [productName, setProductName] = useState(PRESETS[0].items[0].productName);
   const [price, setPrice] = useState(PRESETS[0].items[0].price);
-  const [numericWarning, setNumericWarning] = useState<string | null>(null);
 
   // Bulk mode
   const [bulkText, setBulkText] = useState<string>(
@@ -447,23 +446,11 @@ export default function Home(): React.ReactElement {
     );
   };
 
-  // Numeric-fidelity check on the single-mode price input against the
-  // captions shown. Purely a sanity indicator; the model produces the
-  // image so we can't verify pixel-level, but we can warn the user if
-  // their INPUT is malformed (e.g., no digit at all).
-  useEffect(() => {
-    if (!price.trim()) {
-      setNumericWarning(null);
-      return;
-    }
-    if (!/\d/.test(price)) {
-      setNumericWarning(
-        "The price you typed has no digits — the poster may render incorrectly.",
-      );
-      return;
-    }
-    setNumericWarning(null);
-  }, [price]);
+  // Numeric-fidelity warning is derived from the current input.
+  const numericWarning =
+    price.trim() && !/\d/.test(price)
+      ? "The price you typed has no digits — the poster may render incorrectly."
+      : null;
 
   /* --------------------- BYOK / EXTRA FEATURES ------------------------ */
 
@@ -485,22 +472,24 @@ export default function Home(): React.ReactElement {
   // hasn't dismissed the intro before, show it. Store additive, not
   // destructive — never touches other keys.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const seen = window.localStorage.getItem("bazaarboard.onboarded");
-      if (seen !== "true") setShowOnboarding(true);
-    } catch {
-      // localStorage blocked (private mode) — just skip the intro.
-    }
-    try {
-      const dismissed = window.sessionStorage.getItem(
-        "bazaarboard.voiceCalloutDismissed",
-      );
-      setVoiceCalloutDismissed(dismissed === "true");
-    } catch {
-      // sessionStorage blocked — treat as dismissed (safer default).
-      setVoiceCalloutDismissed(true);
-    }
+    const id = window.setTimeout(() => {
+      try {
+        const seen = window.localStorage.getItem("bazaarboard.onboarded");
+        if (seen !== "true") setShowOnboarding(true);
+      } catch {
+        // localStorage blocked (private mode) — just skip the intro.
+      }
+      try {
+        const dismissed = window.sessionStorage.getItem(
+          "bazaarboard.voiceCalloutDismissed",
+        );
+        setVoiceCalloutDismissed(dismissed === "true");
+      } catch {
+        // sessionStorage blocked — treat as dismissed (safer default).
+        setVoiceCalloutDismissed(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   const dismissOnboarding = useCallback(
@@ -529,11 +518,14 @@ export default function Home(): React.ReactElement {
   );
 
   useEffect(() => {
-    const present = Boolean(getByokKey());
-    setByokPresent(present);
-    // Fires on modal open/close — capture whether a key is present.
-    // Never send the key value itself.
-    trackEvent("byok_key_set", { has_key: present });
+    const id = window.setTimeout(() => {
+      const present = Boolean(getByokKey());
+      setByokPresent(present);
+      // Fires on modal open/close — capture whether a key is present.
+      // Never send the key value itself.
+      trackEvent("byok_key_set", { has_key: present });
+    }, 0);
+    return () => window.clearTimeout(id);
   }, [byokOpen]);
 
   const onCsvImport = useCallback((file: File | null): void => {

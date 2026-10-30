@@ -31,6 +31,61 @@ export function VoiceMic({ mode, onToggle, disabled, label }: Props): React.Reac
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
 
+  function stopWaveform(): void {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    void audioCtxRef.current?.close().catch(() => undefined);
+    audioCtxRef.current = null;
+    analyserRef.current = null;
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  function draw(): void {
+    const canvas = canvasRef.current;
+    const analyser = analyserRef.current;
+    if (!canvas || !analyser) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const bufferLen = analyser.frequencyBinCount;
+    const data = new Uint8Array(bufferLen);
+    const render = (): void => {
+      analyser.getByteFrequencyData(data);
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const baseR = Math.min(w, h) * 0.28;
+      const bars = 48;
+      for (let i = 0; i < bars; i++) {
+        const v = data[Math.floor((i / bars) * bufferLen)] / 255;
+        const len = baseR * 0.35 + v * baseR * 0.9;
+        const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
+        const x1 = cx + Math.cos(angle) * baseR;
+        const y1 = cy + Math.sin(angle) * baseR;
+        const x2 = cx + Math.cos(angle) * (baseR + len);
+        const y2 = cy + Math.sin(angle) * (baseR + len);
+        ctx.strokeStyle = "#F26B1F";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      rafRef.current = requestAnimationFrame(render);
+    };
+    render();
+  }
+
   // Space bar toggles when the button is focused OR when nothing else
   // is focused (agent-friendly hackathon default).
   useEffect(() => {
@@ -84,63 +139,7 @@ export function VoiceMic({ mode, onToggle, disabled, label }: Props): React.Reac
       cancelled = true;
       stopWaveform();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
-
-  const stopWaveform = (): void => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    void audioCtxRef.current?.close().catch(() => undefined);
-    audioCtxRef.current = null;
-    analyserRef.current = null;
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  };
-
-  const draw = (): void => {
-    const canvas = canvasRef.current;
-    const analyser = analyserRef.current;
-    if (!canvas || !analyser) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const bufferLen = analyser.frequencyBinCount;
-    const data = new Uint8Array(bufferLen);
-    const render = (): void => {
-      analyser.getByteFrequencyData(data);
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h / 2;
-      const baseR = Math.min(w, h) * 0.28;
-      const bars = 48;
-      for (let i = 0; i < bars; i++) {
-        const v = data[Math.floor((i / bars) * bufferLen)] / 255;
-        const len = baseR * 0.35 + v * baseR * 0.9;
-        const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
-        const x1 = cx + Math.cos(angle) * baseR;
-        const y1 = cy + Math.sin(angle) * baseR;
-        const x2 = cx + Math.cos(angle) * (baseR + len);
-        const y2 = cy + Math.sin(angle) * (baseR + len);
-        ctx.strokeStyle = "#F26B1F";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-      rafRef.current = requestAnimationFrame(render);
-    };
-    render();
-  };
 
   const idle = mode === "idle" || mode === "done" || mode === "error";
   const active = mode === "listening";

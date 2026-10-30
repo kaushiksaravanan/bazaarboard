@@ -23,17 +23,17 @@ export function RegenerateCard({
   cells,
   startedAt,
 }: Props): React.ReactElement {
-  const [, tick] = useState(0);
+  const [now, setNow] = useState(startedAt);
   const scoped = cells.filter((c) => codes.includes(c.langCode));
   const done = scoped.filter((c) => !c.loading).length;
   const total = codes.length;
   const finished = done === total && total > 0;
-  const elapsedSec = ((finished ? Date.now() : Date.now()) - startedAt) / 1000;
+  const elapsedSec = (now - startedAt) / 1000;
 
   // Re-render every 250ms while pending so the elapsed counter ticks.
   useEffect(() => {
     if (finished) return;
-    const id = window.setInterval(() => tick((n) => n + 1), 250);
+    const id = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(id);
   }, [finished]);
 

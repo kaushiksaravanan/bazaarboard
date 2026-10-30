@@ -65,14 +65,15 @@ export function ThroughputBar({ stats, flash }: Props): React.ReactElement {
   // Local flash-latch: when parent toggles `flash` true, we run the CSS
   // animation once and then release the class so it can re-fire later.
   const [flashOn, setFlashOn] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<number | null>(null);
   useEffect(() => {
     if (!flash) return;
-    setFlashOn(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setFlashOn(false), 1300);
+    timerRef.current = window.setTimeout(() => {
+      setFlashOn(true);
+      timerRef.current = window.setTimeout(() => setFlashOn(false), 1300);
+    }, 0);
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
     };
   }, [flash]);
 

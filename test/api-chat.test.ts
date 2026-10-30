@@ -426,9 +426,11 @@ describe("POST /api/chat — prompt shape and fence", () => {
       messages: [{ role: "user", content: "hi" }],
     });
     await POST(req);
-    const url = fetchMock.mock.calls[0][0] as string;
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toMatch(/gemini-2\.5-flash/);
-    expect(url).toMatch(/key=test-key/);
+    const headers = options.headers as Record<string, string>;
+    expect(headers["X-goog-api-key"]).toBe("test-key");
+    expect(new URL(url).searchParams.has("key")).toBe(false);
   });
 
   it("BYOK header overrides env key", async () => {
@@ -437,8 +439,10 @@ describe("POST /api/chat — prompt shape and fence", () => {
       { "x-gemini-key": "byok-key" },
     );
     await POST(req);
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toMatch(/key=byok-key/);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = options.headers as Record<string, string>;
+    expect(headers["X-goog-api-key"]).toBe("byok-key");
+    expect(new URL(url).searchParams.has("key")).toBe(false);
   });
 });
 
@@ -1137,7 +1141,9 @@ describe("POST /api/chat — fencing and fallback still work with agent tools", 
       { "x-gemini-key": "byok-key" },
     );
     await POST(req);
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toMatch(/key=byok-key/);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = options.headers as Record<string, string>;
+    expect(headers["X-goog-api-key"]).toBe("byok-key");
+    expect(new URL(url).searchParams.has("key")).toBe(false);
   });
 });

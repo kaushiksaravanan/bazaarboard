@@ -541,8 +541,10 @@ describe("POST /api/generate — prompt content (via fetch spy)", () => {
       surfaceKind: "poster",
     });
     await POST(req);
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toMatch(/key=test-key/);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = options.headers as Record<string, string>;
+    expect(headers["X-goog-api-key"]).toBe("test-key");
+    expect(new URL(url).searchParams.has("key")).toBe(false);
   });
 
   it("uses BYOK header when present, overrides env", async () => {
@@ -556,8 +558,10 @@ describe("POST /api/generate — prompt content (via fetch spy)", () => {
       { "x-gemini-key": "byok-hello" },
     );
     await POST(req);
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toMatch(/key=byok-hello/);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = options.headers as Record<string, string>;
+    expect(headers["X-goog-api-key"]).toBe("byok-hello");
+    expect(new URL(url).searchParams.has("key")).toBe(false);
   });
 
   it("responseModalities is IMAGE", async () => {

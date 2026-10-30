@@ -110,9 +110,9 @@ function svgFallback(body: GenerateBody): {
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700&amp;family=Noto+Sans+Devanagari:wght@400..900&amp;family=Noto+Sans+Tamil:wght@400..900&amp;family=Noto+Sans+Bengali:wght@400..900&amp;family=Noto+Sans+Telugu:wght@400..900&amp;family=Noto+Sans+Kannada:wght@400..900&amp;family=Noto+Sans+Malayalam:wght@400..900&amp;family=Noto+Sans+Gurmukhi:wght@400..900&amp;family=Noto+Sans+Gujarati:wght@400..900&amp;family=Plus+Jakarta+Sans:wght@400..800&amp;display=swap');
       </style>
-      <div style="font-size:clamp(48px, ${prodFont}px, ${prodFont}px);font-weight:800;color:#fff;text-align:center;line-height:1.15;overflow-wrap:break-word;word-break:break-word;max-width:100%;">${product}</div>
+      <div style="font-size:${prodFont}px;font-weight:800;color:#fff;text-align:center;line-height:1.15;overflow-wrap:break-word;word-break:break-word;max-width:100%;">${product}</div>
       <div style="margin-top:${dim.h * 0.05}px;background:#fff;border-radius:${dim.w * 0.03}px;padding:${dim.w * 0.04}px ${dim.w * 0.06}px;max-width:80%;">
-        <div style="font-size:clamp(48px, ${priceFont}px, ${priceFont}px);font-weight:700;color:${brand};text-align:center;line-height:1.1;white-space:nowrap;">${price}</div>
+        <div style="font-size:${priceFont}px;font-weight:700;color:${brand};text-align:center;line-height:1.1;white-space:nowrap;">${price}</div>
       </div>
       ${business ? `<div style="margin-top:${dim.h * 0.06}px;font-family:'Plus Jakarta Sans','${fontFamily}',sans-serif;font-weight:600;color:#fff;opacity:0.85;letter-spacing:2px;font-size:${Math.min(dim.w * 0.035, 44)}px;text-align:center;text-transform:uppercase;">${business}</div>` : ""}
       <div style="margin-top:${dim.h * 0.04}px;font-family:'Fraunces',serif;font-style:italic;color:#fff;opacity:0.55;font-size:${Math.min(dim.w * 0.022, 28)}px;">BazaarBoard · Typography-perfect fallback</div>

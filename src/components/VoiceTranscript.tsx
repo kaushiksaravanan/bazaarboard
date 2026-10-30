@@ -61,11 +61,7 @@ function BubbleView({ bubble }: { bubble: Bubble }): React.ReactElement {
   // (interim or final) text immediately.
   const [chars, setChars] = useState(isAi ? 0 : bubble.text.length);
   useEffect(() => {
-    if (!isAi) {
-      setChars(bubble.text.length);
-      return;
-    }
-    setChars(0);
+    if (!isAi) return;
     let n = 0;
     const id = window.setInterval(() => {
       n += 1;

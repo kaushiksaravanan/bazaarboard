@@ -124,7 +124,7 @@ describe("SVG fallback — content inclusion", () => {
     expect(svg.includes("₹543")).toBe(true);
   });
 
-  it("business name when provided (uppercased)", async () => {
+  it("business name is provided with an uppercase display style", async () => {
     const svg = await fallbackSvg({
       productName: "X",
       price: "₹100",
@@ -132,7 +132,8 @@ describe("SVG fallback — content inclusion", () => {
       surfaceKind: "poster",
       businessName: "Rathi Kirana",
     });
-    expect(svg.includes("RATHI KIRANA")).toBe(true);
+    expect(svg.includes("Rathi Kirana")).toBe(true);
+    expect(svg.includes("text-transform:uppercase")).toBe(true);
   });
 
   it("business name omitted when not provided", async () => {
@@ -142,8 +143,8 @@ describe("SVG fallback — content inclusion", () => {
       languageCode: "en",
       surfaceKind: "poster",
     });
-    // The upper-case business text is absent because none was passed.
-    expect(svg.includes("RATHI")).toBe(false);
+    // Business text is absent because none was passed.
+    expect(svg.includes("Rathi")).toBe(false);
   });
 
   it("uses brandColor when provided", async () => {
@@ -237,7 +238,8 @@ describe("SVG fallback — XML escaping", () => {
       languageCode: "en",
       surfaceKind: "poster",
     });
-    expect(svg.includes("BIG&LT;STORE")).toBe(true);
+    expect(svg.includes("Big&lt;Store")).toBe(true);
+    expect(svg.includes("Big<Store")).toBe(false);
   });
 
   it("escapes < in price", async () => {
@@ -275,7 +277,7 @@ describe("SVG fallback — auto-shrink long text", () => {
   });
 
   function extractProdFontSize(svg: string): number {
-    const match = svg.match(/class="prod" font-size="([\d.]+)"/);
+    const match = svg.match(/<div style="font-size:([\d.]+)px;font-weight:800/);
     if (!match) throw new Error("no prod font found");
     return parseFloat(match[1]);
   }

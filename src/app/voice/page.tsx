@@ -213,7 +213,7 @@ export default function VoicePage(): React.ReactElement {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [state, dispatch] = useReducer(voiceReducer, INITIAL_STATE);
   const briefRef = useRef(state.brief);
-  briefRef.current = state.brief;
+  const startListeningRef = useRef<(langHint?: string) => void>(() => undefined);
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const historyRef = useRef<ChatMessage[]>([]);
@@ -229,7 +229,15 @@ export default function VoicePage(): React.ReactElement {
   );
 
   useEffect(() => {
-    setSupported(getSpeechRecognitionCtor() !== null);
+    briefRef.current = state.brief;
+  }, [state.brief]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setSupported(getSpeechRecognitionCtor() !== null),
+      0,
+    );
+    return () => window.clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -747,10 +755,8 @@ export default function VoicePage(): React.ReactElement {
       });
       setMode("speaking");
       await speak(reply.text, reply.language);
-      startListening(reply.language);
+      startListeningRef.current(reply.language);
     },
-    // startListening is defined below; captured via closure.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       appendBubble,
       runRegenerate,
@@ -886,6 +892,10 @@ export default function VoicePage(): React.ReactElement {
     },
     [pinnedLang, detectedLang, cancelSpeak, sendUserTurn],
   );
+
+  useEffect(() => {
+    startListeningRef.current = startListening;
+  }, [startListening]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
