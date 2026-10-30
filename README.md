@@ -2,7 +2,7 @@
 
 BazaarBoard is a hackathon prototype for creating retail posters in eight Indic scripts. Enter a product and price, choose languages and output sizes, then download individual posters or a ZIP archive.
 
-[Hosted demo](https://bazaarboard.vercel.app) ? the hosted version may differ from this repository.
+[Hosted demo](https://bazaarboard.vercel.app). The hosted version may differ from this repository.
 
 ![Editor with multiple scripts](docs/screenshot-hero.png)
 
@@ -20,7 +20,7 @@ This project demonstrates a Next.js 16 / React 19 application with typed API han
 
 ## Run locally
 
-Use Node.js 22.13 or newer and npm.
+Use Node.js 22 LTS (22.13 or newer in the 22.x release line) and npm.
 
 ```bash
 git clone https://github.com/kaushiksaravanan/bazaarboard.git
@@ -66,6 +66,6 @@ The app includes Vercel Analytics and Speed Insights. Its own telemetry endpoint
 
 ## License and author
 
-MIT ? see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 Built by Kaushik Saravanan for the Google DeepMind Bangalore Hackathon 2026.
