@@ -11,7 +11,7 @@
  * | { kind: "tool_calls", language, toolCalls: [{name,args,id}], message? }
  * | { kind: "finalize", order }
  *
- * The route wraps Gemini text (`gemini-2.5-flash`) with:
+ * The route wraps Gemini text (`gemini-3.5-flash-lite`) with:
  *  - a compact design-assistant system prompt
  *  - a catalog of tool declarations covering slot edits, language set
  *    changes, surface/preset changes, regeneration, exports, undo, and
@@ -31,7 +31,7 @@ import {
 } from "@/lib/fidelity";
 import { detectLanguage, type SupportedLanguage } from "@/lib/detectLanguage";
 
-const DEFAULT_MODEL = process.env.NB2_CHAT_MODEL ?? "gemini-2.5-flash";
+const DEFAULT_MODEL = process.env.NB2_CHAT_MODEL ?? "gemini-3.5-flash-lite";
 const UPSTREAM_TIMEOUT_MS = 20_000;
 const DEFAULT_BRAND_COLOR = "#F26B1F";
 

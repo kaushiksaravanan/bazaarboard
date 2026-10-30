@@ -421,13 +421,13 @@ describe("POST /api/chat — prompt shape and fence", () => {
     expect(names).toContain("finalize_order");
   });
 
-  it("fetch URL includes model name and api key", async () => {
+  it("uses the current model and sends the API key only in a header", async () => {
     const req = makeReq({
       messages: [{ role: "user", content: "hi" }],
     });
     await POST(req);
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toMatch(/gemini-2\.5-flash/);
+    expect(url).toMatch(/gemini-3\.5-flash-lite/);
     const headers = options.headers as Record<string, string>;
     expect(headers["X-goog-api-key"]).toBe("test-key");
     expect(new URL(url).searchParams.has("key")).toBe(false);
